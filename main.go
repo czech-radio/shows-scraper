@@ -7,6 +7,17 @@ import (
 )
 
 
+type Clanek struct{
+  Show string
+  Title string
+  Date string
+  Time string
+  Moderator string
+  Guests []string
+  Description string
+  Link string
+}
+
 func main() {
 	c := colly.NewCollector()
 
