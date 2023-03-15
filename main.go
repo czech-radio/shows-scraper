@@ -34,7 +34,7 @@ func NewClanek(title string, date string, description string, link string, optio
 }
 
 func (clanek *Clanek) PrettyPrint() {
-	fmt.Printf("Název: %s\nDatum: %s\nLink: %s\nPopis: %s\n\n\n", clanek.Title, clanek.Date, clanek.Description, clanek.Link)
+	fmt.Printf("Název: %s\nDatum: %s\nObsah: %s\nLink: %s\n\n\n", clanek.Title, clanek.Date, clanek.Description, clanek.Link)
 }
 
 //// optioanl fields ///////////////////////////////////////////////////
@@ -75,10 +75,10 @@ func main() {
 
 	// Find and visit all links
 	c.OnHTML(".b-022__block", func(e *colly.HTMLElement) {
-		datum := e.ChildText(".b-022__timestamp")
 		nadpis := e.ChildText("h3")
-		link := fmt.Sprintf("https://radiozurnal.rozhlas.cz%s", e.ChildAttr("h3 a", "href"))
+		datum := e.ChildText(".b-022__timestamp")
 		popis := e.ChildText("p")
+		link := fmt.Sprintf("https://radiozurnal.rozhlas.cz%s", e.ChildAttr("h3 a", "href"))
 
 		if nadpis != "" {
 			clanky = append(clanky, NewClanek(nadpis, datum, popis, link))
