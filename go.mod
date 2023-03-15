@@ -1,4 +1,4 @@
-module publicistika_scraper
+module publicistika-scraper
 
 go 1.20
 
