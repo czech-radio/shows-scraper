@@ -1,6 +1,9 @@
 # publicistika_scraper
 Tvorba prehledu hostu temat a moderatoru vybranych poradu publicistiky.
 
+[![Go](https://github.com/czech-radio/publicistika-scraper/actions/workflows/go.yml/badge.svg)](https://github.com/czech-radio/publicistika-scraper/actions/workflows/go.yml)
+
+
 
 ## Zadání
 
