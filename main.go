@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/gocolly/colly/v2"
+	"sort"
+        "strconv"
+        "github.com/gocolly/colly/v2"
 )
 
 type Option func(c Clanek) Clanek
@@ -32,6 +34,40 @@ func NewClanek(title string, date string, description string, link string, optio
 
 	return c
 }
+
+
+func sortByDate(clanky []Clanek) {
+      sort.SliceStable(clanky, func(i, j int) bool {
+      ci, cj := clanky[i],clanky[j]
+        
+      switch {
+        case ci.Date != cj.Date:
+            return ci.Date < cj.Date
+        default:
+            return ci.Date < cj.Date
+        }
+    })
+}
+
+
+func sortNumbers(clanky []Clanek) ([]Clanek, error) {
+    var lastErr error
+    sort.Slice(clanky, func(i, j int) bool {
+        a, err := strconv.ParseInt(clanky[i].Date, 0, 4)
+        if err != nil {
+            lastErr = err
+            return false
+        }
+        b, err := strconv.ParseInt(clanky[j].Date, 0, 4)
+        if err != nil {
+            lastErr = err
+            return false
+        }
+        return a < b
+    })
+    return clanky, lastErr
+}
+
 
 func (clanek *Clanek) PrettyPrint() {
 	fmt.Printf("Název: %s\nDatum: %s\nObsah: %s\nLink: %s\n\n\n", clanek.Title, clanek.Date, clanek.Description, clanek.Link)
@@ -101,8 +137,15 @@ func main() {
 	//fmt.Println("\nstahuji: Interview Plus\n-----------------------------------------------------------\n\n")
 	c.Visit("https://plus.rozhlas.cz/interview-plus-6504167")
 
-	for _, clanek := range clanky {
 
+        // sort clanky by date
+        sorted, err := sortNumbers(clanky)
+          if err != nil {
+        fmt.Errorf("Error sorting by date %s",err.Error())
+    }
+
+
+	for _, clanek := range sorted {
 		clanek.PrettyPrint()
 	}
 
