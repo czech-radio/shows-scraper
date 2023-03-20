@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"sort"
 	"strconv"
@@ -41,7 +42,7 @@ func NewClanek(title string, date string, description string, link string, optio
 
 func prependZero(input string) string {
 	s := strings.Split(input, ".")
-	no, err := strconv.ParseInt(s[0], 0, len(s[0]))
+	no, err := strconv.Atoi(s[0])
 
 	if err != nil {
 		fmt.Println("Error converting string to int: " + err.Error())
@@ -62,24 +63,6 @@ func sortByDate(clanky []Clanek) {
 			return ci > cj
 		}
 	})
-}
-
-func sortNumbers(clanky []Clanek) ([]Clanek, error) {
-	var lastErr error
-	sort.Slice(clanky, func(i, j int) bool {
-		a, err := strconv.ParseInt(clanky[i].Date, 0, 4)
-		if err != nil {
-			lastErr = err
-			return false
-		}
-		b, err := strconv.ParseInt(clanky[j].Date, 0, 4)
-		if err != nil {
-			lastErr = err
-			return false
-		}
-		return a < b
-	})
-	return clanky, lastErr
 }
 
 func (clanek *Clanek) PrettyPrint() {
@@ -119,6 +102,10 @@ func AddGuests(guests []string) Option {
 /////////////////////////////////////////////////////////////////////////
 
 func main() {
+
+	noPages := flag.Int("p", 1, "Number of pages to download.")
+	flag.Parse()
+
 	c := colly.NewCollector()
 	clanky := make([]Clanek, 0)
 
@@ -141,22 +128,12 @@ func main() {
 			})
 	*/
 
-	//fmt.Println("\nstahuji: Hlavni zprávy rozhovory a komentáře\n-----------------------------------------------------------\n\n")
-	c.Visit("https://plus.rozhlas.cz/hlavni-zpravy-rozhovory-a-komentare-5997846")
-	//fmt.Println("\nstahuji: Pro a proti\n-----------------------------------------------------------\n\n")
-	c.Visit("https://plus.rozhlas.cz/pro-a-proti-6482952")
-	//fmt.Println("\nstahuji: Dvacet minut radiožurnálu\n-----------------------------------------------------------\n\n")
-	c.Visit("https://plus.rozhlas.cz/dvacet-minut-radiozurnalu-5997743")
-	//fmt.Println("\nstahuji: Interview Plus\n-----------------------------------------------------------\n\n")
-	c.Visit("https://plus.rozhlas.cz/interview-plus-6504167")
-
-	// sort clanky by date
-	/*
-		        sorted, err := sortNumbers(clanky)
-			if err != nil {
-				fmt.Errorf("Error sorting by date %s", err.Error())
-			}
-	*/
+	for i := 0; i < *noPages; i++ {
+		c.Visit(fmt.Sprintf("https://plus.rozhlas.cz/hlavni-zpravy-rozhovory-a-komentare-5997846?page=%d", i))
+		c.Visit(fmt.Sprintf("https://plus.rozhlas.cz/pro-a-proti-6482952?page=%d", i))
+		c.Visit(fmt.Sprintf("https://plus.rozhlas.cz/dvacet-minut-radiozurnalu-5997743?page=%d", i))
+		c.Visit(fmt.Sprintf("https://plus.rozhlas.cz/interview-plus-6504167?page=%d", i))
+	}
 
 	sortByDate(clanky)
 
