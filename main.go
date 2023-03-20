@@ -40,8 +40,14 @@ func NewClanek(title string, date string, description string, link string, optio
 }
 
 func prependZero(input string) string {
-	no := strings.Split(input, ".")
-	return fmt.Sprintf("%02d. %s", no[0], no[1])
+	s := strings.Split(input, ".")
+	no, err := strconv.ParseInt(s[0], 0, len(s[0]))
+
+	if err != nil {
+		fmt.Println("Error converting string to int: " + err.Error())
+	}
+
+	return fmt.Sprintf("%02d. %s", no, s[1])
 
 }
 
@@ -146,10 +152,10 @@ func main() {
 
 	// sort clanky by date
 	/*
-	        sorted, err := sortNumbers(clanky)
-		if err != nil {
-			fmt.Errorf("Error sorting by date %s", err.Error())
-		}
+		        sorted, err := sortNumbers(clanky)
+			if err != nil {
+				fmt.Errorf("Error sorting by date %s", err.Error())
+			}
 	*/
 
 	sortByDate(clanky)
