@@ -2,9 +2,13 @@ package main
 
 import (
 	"fmt"
-	"github.com/gocolly/colly/v2"
 	"sort"
 	"strconv"
+	"strings"
+
+	//	"strings"
+
+	"github.com/gocolly/colly/v2"
 )
 
 type Option func(c Clanek) Clanek
@@ -35,15 +39,21 @@ func NewClanek(title string, date string, description string, link string, optio
 	return c
 }
 
+func prependZero(input string) string {
+	no := strings.Split(input, ".")
+	return fmt.Sprintf("%02d. %s", no[0], no[1])
+
+}
+
 func sortByDate(clanky []Clanek) {
 	sort.SliceStable(clanky, func(i, j int) bool {
-		ci, cj := clanky[i], clanky[j]
+		ci, cj := prependZero(clanky[i].Date), prependZero(clanky[j].Date)
 
 		switch {
-		case ci.Date != cj.Date:
-			return ci.Date < cj.Date
+		case ci != cj:
+			return ci > cj
 		default:
-			return ci.Date < cj.Date
+			return ci > cj
 		}
 	})
 }
@@ -135,12 +145,16 @@ func main() {
 	c.Visit("https://plus.rozhlas.cz/interview-plus-6504167")
 
 	// sort clanky by date
-	sorted, err := sortNumbers(clanky)
-	if err != nil {
-		fmt.Errorf("Error sorting by date %s", err.Error())
-	}
+	/*
+	        sorted, err := sortNumbers(clanky)
+		if err != nil {
+			fmt.Errorf("Error sorting by date %s", err.Error())
+		}
+	*/
 
-	for _, clanek := range sorted {
+	sortByDate(clanky)
+
+	for _, clanek := range clanky {
 		clanek.PrettyPrint()
 	}
 
