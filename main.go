@@ -66,7 +66,7 @@ func sortByDate(clanky []Clanek) {
 }
 
 func (clanek *Clanek) PrettyPrint() {
-	fmt.Printf("Název: %s\nDatum: %s\nObsah: %s\nLink: %s\n\n\n", clanek.Title, clanek.Date, clanek.Description, clanek.Link)
+	fmt.Printf("Pořad: %s\nNázev: %s\nDatum: %s\nObsah: %s\nLink: %s\n\n\n", clanek.Show, clanek.Title, clanek.Date, clanek.Description, clanek.Link)
 }
 
 //// optioanl fields ///////////////////////////////////////////////////
@@ -101,6 +101,10 @@ func AddGuests(guests []string) Option {
 
 /////////////////////////////////////////////////////////////////////////
 
+var showName string
+
+/////////////////////////////////////////////////////////////////////////
+
 func main() {
 
 	noPages := flag.Int("p", 1, "Number of pages to download.")
@@ -117,7 +121,8 @@ func main() {
 		link := fmt.Sprintf("https://radiozurnal.rozhlas.cz%s", e.ChildAttr("h3 a", "href"))
 
 		if nadpis != "" {
-			clanky = append(clanky, NewClanek(nadpis, datum, popis, link))
+			novyClanek := NewClanek(nadpis, datum, popis, link, AddShow(showName))
+			clanky = append(clanky, novyClanek)
 
 		}
 	})
@@ -129,9 +134,16 @@ func main() {
 	*/
 
 	for i := 0; i < *noPages; i++ {
+		showName = "Hlavní zprávy, rozhovodry a publicistika"
 		c.Visit(fmt.Sprintf("https://plus.rozhlas.cz/hlavni-zpravy-rozhovory-a-komentare-5997846?page=%d", i))
+
+		showName = "Pro a proti"
 		c.Visit(fmt.Sprintf("https://plus.rozhlas.cz/pro-a-proti-6482952?page=%d", i))
+
+		showName = "Dvacet minut radiozurnalu"
 		c.Visit(fmt.Sprintf("https://plus.rozhlas.cz/dvacet-minut-radiozurnalu-5997743?page=%d", i))
+
+		showName = "Interview plus"
 		c.Visit(fmt.Sprintf("https://plus.rozhlas.cz/interview-plus-6504167?page=%d", i))
 	}
 
