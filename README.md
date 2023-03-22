@@ -7,7 +7,7 @@ Tvorba prehledu hostu temat a moderatoru vybranych poradu publicistiky.
 
 Získej tabulku pro zadané období (obvykle měsíc) s informacemi o zadaných pořadech vysílaných na stanicích Plus a Radiožurnál:
 
-1) 20 minut Radiožurnálu
+1) 20 minut Radiožurnálu, [odkaz](https://radiozurnal.rozhlas.cz/dvacet-minut-radiozurnalu-5997743)
 2) Interview Plus, [odkaz](https://plus.rozhlas.cz/interview-plus-6504167)
 3) Pro a Proti (Plus) [odkaz](https://plus.rozhlas.cz/pro-a-proti-6482952)
 4) Hlavní zprávy: Rozhovory komentáře (Radiožurnál, Plus), [odkaz](https://radiozurnal.rozhlas.cz/hlavni-zpravy-rozhovory-a-komentare-5997846)
