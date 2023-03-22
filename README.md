@@ -4,7 +4,11 @@ Přehled témat, hostů a moderátorů ve vybraných pořadech publicistiky.
 
 [![Go](https://github.com/czech-radio/publicistika-scraper/actions/workflows/go.yml/badge.svg)](https://github.com/czech-radio/publicistika-scraper/actions/workflows/go.yml)
 
-# Zadání
+## Použití
+
+&hellip;
+
+## Zadání
 
 Získej tabulku pro zadané období (obvykle měsíc) s informacemi o zadaných pořadech vysílaných na stanicích Plus a Radiožurnál:
 
