@@ -134,13 +134,13 @@ func main() {
 	*/
 
 	for i := 0; i < *noPages; i++ {
-		showName = "Hlavní zprávy, rozhovodry a publicistika"
+		showName = "Hlavní zprávy, rozhovory a publicistika"
 		c.Visit(fmt.Sprintf("https://plus.rozhlas.cz/hlavni-zpravy-rozhovory-a-komentare-5997846?page=%d", i))
 
 		showName = "Pro a proti"
 		c.Visit(fmt.Sprintf("https://plus.rozhlas.cz/pro-a-proti-6482952?page=%d", i))
 
-		showName = "Dvacet minut radiozurnalu"
+		showName = "Dvacet minut Radiožurnálu"
 		c.Visit(fmt.Sprintf("https://plus.rozhlas.cz/dvacet-minut-radiozurnalu-5997743?page=%d", i))
 
 		showName = "Interview plus"
