@@ -35,3 +35,19 @@ Data chceme ukládat vše do jednoho dokumentu, avšak aktualizovat průběžne 
 Ukazuje se, že každý pořad bude mít vlastní zdroj, popř. více zdrojů, ze kterých se budou o nich čerpat potřebné informace např.
 - Hlavní zprávy - Rozhovory a komentáře: data získáme ze stránek pořadu
 - 20 minut, Interview Plus a Pro a Proti: data získáme s REST API programu
+
+
+
+
+## Build
+
+Projekt používá predchozí projekt [_schedule_](https://github.com/czech-radio/schedule/tree/4d1c3f7e86d57a77ef19ad4b7cf2311b8c67f044) jako submodule. Pro správnou instalaci a build:
+
+
+```bash
+git clone git@github.com:czech-radio/publicistika-scraper.git
+cd publicistika-scraper
+git submodule init
+git submodule update --remote
+go build
+```
