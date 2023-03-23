@@ -20,6 +20,7 @@ type Clanek struct {
 	Description string
 	Link        string
 	// optional
+	Teaser    string
 	Show      string
 	Time      string
 	Moderator string
@@ -99,6 +100,12 @@ func AddGuests(guests []string) Option {
 	}
 }
 
+func AddTeaser(teaser string) Option {
+	return func(c Clanek) Clanek {
+		c.Teaser = teaser
+		return c
+	}
+}
 /////////////////////////////////////////////////////////////////////////
 
 var showName string
