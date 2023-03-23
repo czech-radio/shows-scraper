@@ -4,10 +4,6 @@ Přehled témat, hostů a moderátorů ve vybraných pořadech publicistiky.
 
 [![Go](https://github.com/czech-radio/publicistika-scraper/actions/workflows/go.yml/badge.svg)](https://github.com/czech-radio/publicistika-scraper/actions/workflows/go.yml)
 
-## Použití
-
-&hellip;
-
 ## Zadání
 
 Získej tabulku pro zadané období (obvykle měsíc) s informacemi o zadaných pořadech vysílaných na stanicích Plus a Radiožurnál:
@@ -51,3 +47,17 @@ git submodule init
 git submodule update --remote
 go build
 ```
+
+
+## Použití
+
+&hellip;
+
+```bash
+
+./publicistika-scraper -p [početStran]
+```
+
+### Flags
+
+    - `p` počet stran ke stažení, defaultně 1 
