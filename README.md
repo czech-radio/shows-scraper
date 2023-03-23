@@ -59,5 +59,4 @@ go build
 ```
 
 ### Flags
-
-    - `p` počet stran ke stažení, defaultně 1 
+- `p` počet stran ke stažení, defaultně 1 
