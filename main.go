@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"time"
+	//	"time"
 
 	//	"strings"
 
@@ -61,7 +61,7 @@ func prependZero(input string) string {
 
 func sortByDate(clanky []Clanek) {
 	sort.SliceStable(clanky, func(i, j int) bool {
-		ci, cj := fmt.Sprintf("%s %s",clanky[i].Show,clanky[i].Date), fmt.Sprintf("%s %s",clanky[j].Show,clanky[j].Date)
+		ci, cj := fmt.Sprintf("%s %s", clanky[i].Show, clanky[i].Date), fmt.Sprintf("%s %s", clanky[j].Show, clanky[j].Date)
 
 		switch {
 		case ci != cj:
@@ -127,10 +127,10 @@ func getSchedule(date string, porad string) {
 func convertDate(input string) string {
 	s := strings.Split(input, " ")
 	day, err := strconv.Atoi(strings.Split(s[0], ".")[0])
-        if err != nil {
-            log.Fatal("Couldn't get day from date")
-        }
-	year := fmt.Sprintf("%d", time.Now().Year())
+	if err != nil {
+		log.Fatal("Couldn't get day from date")
+	}
+	year := fmt.Sprintf("%s", s[2])
 	months := map[string]string{
 		"leden":    "01",
 		"únor":     "02",
@@ -147,10 +147,6 @@ func convertDate(input string) string {
 	}
 	mo := months[s[1]]
 	return fmt.Sprintf("%s-%s-%02d", year, mo, day)
-}
-
-func Split(r rune) bool {
-	return r == '.' || r == ' '
 }
 
 /////////////////////////////////////////////////////////////////////////
