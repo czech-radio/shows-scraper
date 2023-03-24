@@ -61,7 +61,7 @@ func prependZero(input string) string {
 
 func sortByDate(clanky []Clanek) {
 	sort.SliceStable(clanky, func(i, j int) bool {
-		ci, cj := clanky[i].Date, clanky[j].Date
+		ci, cj := fmt.Sprintf("%s %s",clanky[i].Show,clanky[i].Date), fmt.Sprintf("%s %s",clanky[j].Show,clanky[j].Date)
 
 		switch {
 		case ci != cj:
@@ -126,7 +126,10 @@ func getSchedule(date string, porad string) {
 
 func convertDate(input string) string {
 	s := strings.Split(input, " ")
-	day := strings.Split(s[0], ".")[0]
+	day, err := strconv.Atoi(strings.Split(s[0], ".")[0])
+        if err != nil {
+            log.Fatal("Couldn't get day from date")
+        }
 	year := fmt.Sprintf("%d", time.Now().Year())
 	months := map[string]string{
 		"leden":    "01",
@@ -143,7 +146,7 @@ func convertDate(input string) string {
 		"prosinec": "12",
 	}
 	mo := months[s[1]]
-	return fmt.Sprintf("%s-%s-%s", year, mo, day)
+	return fmt.Sprintf("%s-%s-%02d", year, mo, day)
 }
 
 func Split(r rune) bool {
@@ -197,7 +200,7 @@ func main() {
 	sortByDate(clanky)
 
 	for _, clanek := range clanky {
-		getSchedule(clanek.Date, clanek.Show)
+		//getSchedule(clanek.Date, clanek.Show)
 		clanek.PrettyPrint()
 	}
 
