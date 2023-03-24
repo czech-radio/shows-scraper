@@ -6,8 +6,14 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	//	"strings"
+
+	"encoding/csv"
+	"log"
+	"os"
+	"os/exec"
 
 	"github.com/gocolly/colly/v2"
 )
@@ -55,7 +61,7 @@ func prependZero(input string) string {
 
 func sortByDate(clanky []Clanek) {
 	sort.SliceStable(clanky, func(i, j int) bool {
-		ci, cj := prependZero(clanky[i].Date), prependZero(clanky[j].Date)
+		ci, cj := clanky[i].Date, clanky[j].Date
 
 		switch {
 		case ci != cj:
@@ -70,7 +76,7 @@ func (clanek *Clanek) PrettyPrint() {
 	fmt.Printf("Pořad: %s\nNázev: %s\nDatum: %s\nObsah: %s\nLink: %s\n\n\n", clanek.Show, clanek.Title, clanek.Date, clanek.Description, clanek.Link)
 }
 
-//// optioanl fields ///////////////////////////////////////////////////
+//// optional fields ///////////////////////////////////////////////////
 
 func AddShow(show string) Option {
 	return func(c Clanek) Clanek {
@@ -106,9 +112,43 @@ func AddTeaser(teaser string) Option {
 		return c
 	}
 }
+
 /////////////////////////////////////////////////////////////////////////
 
 var showName string
+
+func getSchedule(date string, porad string) {
+	cmd := exec.Command("./getSchedule.sh", date, porad)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	fmt.Println(cmd.Run())
+}
+
+func convertDate(input string) string {
+	s := strings.Split(input, " ")
+	day := strings.Split(s[0], ".")[0]
+	year := fmt.Sprintf("%d", time.Now().Year())
+	months := map[string]string{
+		"leden":    "01",
+		"únor":     "02",
+		"březen":   "03",
+		"duben":    "04",
+		"květen":   "05",
+		"červen":   "06",
+		"červenec": "07",
+		"srpen":    "08",
+		"září":     "09",
+		"říjen":    "10",
+		"listopad": "11",
+		"prosinec": "12",
+	}
+	mo := months[s[1]]
+	return fmt.Sprintf("%s-%s-%s", year, mo, day)
+}
+
+func Split(r rune) bool {
+	return r == '.' || r == ' '
+}
 
 /////////////////////////////////////////////////////////////////////////
 
@@ -123,11 +163,11 @@ func main() {
 	// Find and visit all links
 	c.OnHTML(".b-022__block", func(e *colly.HTMLElement) {
 		nadpis := e.ChildText("h3")
-		datum := e.ChildText(".b-022__timestamp")
-		popis := e.ChildText("p")
-		link := fmt.Sprintf("https://radiozurnal.rozhlas.cz%s", e.ChildAttr("h3 a", "href"))
-
 		if nadpis != "" {
+			datum := convertDate(e.ChildText(".b-022__timestamp"))
+			popis := e.ChildText("p")
+			link := fmt.Sprintf("https://radiozurnal.rozhlas.cz%s", e.ChildAttr("h3 a", "href"))
+
 			novyClanek := NewClanek(nadpis, datum, popis, link, AddShow(showName))
 			clanky = append(clanky, novyClanek)
 
@@ -150,14 +190,31 @@ func main() {
 		showName = "Dvacet minut Radiožurnálu"
 		c.Visit(fmt.Sprintf("https://plus.rozhlas.cz/dvacet-minut-radiozurnalu-5997743?page=%d", i))
 
-		showName = "Interview plus"
+		showName = "Interview Plus"
 		c.Visit(fmt.Sprintf("https://plus.rozhlas.cz/interview-plus-6504167?page=%d", i))
 	}
 
 	sortByDate(clanky)
 
 	for _, clanek := range clanky {
+		getSchedule(clanek.Date, clanek.Show)
 		clanek.PrettyPrint()
 	}
 
+}
+
+func readCsvFile(filePath string) [][]string {
+	f, err := os.Open(filePath)
+	if err != nil {
+		log.Fatal("Unable to read input file "+filePath, err)
+	}
+	defer f.Close()
+
+	csvReader := csv.NewReader(f)
+	records, err := csvReader.ReadAll()
+	if err != nil {
+		log.Fatal("Unable to parse file as CSV for "+filePath, err)
+	}
+
+	return records
 }
