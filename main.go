@@ -73,7 +73,7 @@ func sortByDate(clanky []Clanek) {
 }
 
 func (clanek *Clanek) PrettyPrint() {
-	fmt.Printf("Pořad: %s\nNázev: %s\nDatum: %s\nObsah: %s\nLink: %s\n\n\n", clanek.Show, clanek.Title, clanek.Date, clanek.Description, clanek.Link)
+	fmt.Printf("Pořad: %s\nNázev: %s\nDatum: %s\nObsah: %s\nLink : %s\n\n", clanek.Show, clanek.Title, clanek.Date, clanek.Description, clanek.Link)
 }
 
 //// optional fields ///////////////////////////////////////////////////
@@ -196,8 +196,8 @@ func main() {
 	sortByDate(clanky)
 
 	for _, clanek := range clanky {
-		//getSchedule(clanek.Date, clanek.Show)
 		clanek.PrettyPrint()
+		//getSchedule(clanek.Date, clanek.Show)
 	}
 
 }

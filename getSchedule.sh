@@ -19,7 +19,7 @@ getSchedule() {
 grepPorad() {
   cd ..
   # filtruj nazev poradu a premieru
-  cat Schedule_D${DATE}.csv | grep "${PORAD}"
+  cat Schedule_D${DATE}.csv | grep True | grep "${PORAD}"
 }
 
 
