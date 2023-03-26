@@ -5,16 +5,21 @@ DATE=$1
 PORAD="$2"
 
 
-
-getSchedule() {
+activate(){
   cd schedule
   python -m venv .venv
   . .venv/bin/activate
   pip install -e .
-  cro.schedule --period D --date $DATE --stations plus,radiozurnal --output ..
-  deactivate
+
 }
 
+getSchedule() {
+ cro.schedule --period D --date $1 --stations plus,radiozurnal --output ..
+}
+
+deactivate(){
+  deactivate
+}
 
 grepPorad() {
   cd ..
@@ -23,7 +28,14 @@ grepPorad() {
 }
 
 
-getSchedule || exit 1
-grepPorad || exit 1
+activate || exit 1
+
+for i in `cat /tmp/dates.txt | sort -n |  uniq`; do
+  getSchedule $i || exit 1
+done
+deactivate || exit 1
+
+
+#grepPorad || exit 1
 
 exit 0

@@ -195,11 +195,36 @@ func main() {
 
 	sortByDate(clanky)
 
+	clearTmp("/tmp/dates.txt")
 	for _, clanek := range clanky {
 		clanek.PrettyPrint()
 		//getSchedule(clanek.Date, clanek.Show)
+		//writeDates("/tmp/dates.txt",fmt.Sprintf("%s; %s\n",clanek.Date, clanek.Show))
+		writeDates("/tmp/dates.txt", fmt.Sprintf("%s\n", clanek.Date))
 	}
 
+}
+
+func clearTmp(filename string) {
+	err := os.Remove(filename) // remove a single file
+	if err != nil {
+		fmt.Println(err)
+	}
+
+}
+
+func writeDates(filename string, text string) {
+
+	f, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	if err != nil {
+		panic(err)
+	}
+
+	defer f.Close()
+
+	if _, err = f.WriteString(text); err != nil {
+		panic(err)
+	}
 }
 
 func readCsvFile(filePath string) [][]string {
