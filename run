@@ -1,6 +1,5 @@
 #!/bin/bash
 
-rm *.csv
-./publicistika-scraper -p 4
+#./publicistika-scraper -p 4
 ./getSchedule.sh
 ./filterPorady.sh

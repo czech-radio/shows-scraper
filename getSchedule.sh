@@ -30,7 +30,7 @@ grepPorad() {
 
 activate || exit 1
 
-for i in `cat /tmp/dates.txt | sort -n |  uniq`; do
+for i in `cat /tmp/dates.txt | sort -n -r |  uniq`; do
   getSchedule $i || exit 1
 done
 deactivate || exit 1
