@@ -10,5 +10,5 @@ cat *.csv | grep False | grep "Dvacet minut"  | awk -F'\t' '{print $3"\t"$4"\t"$
 cat *.csv | grep False | grep "rozhovory"  | awk -F'\t' '{print $3"\t"$4"\t"$8"\t"$9"\t"$10}' >> ${FILENAME}
 
 
-mv ${FILENAME} /irozhlas-scraper-geneea-output/publicistika/
+mv ${FILENAME} /root/irozhlas-scraper-geneea-output/publicistika/
 rm *.csv

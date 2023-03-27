@@ -1,5 +1,5 @@
 #!/bin/bash
 
-#./publicistika-scraper -p 4
+./publicistika-scraper -p 3
 ./getSchedule.sh
 ./filterPorady.sh
