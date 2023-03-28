@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	//	"time"
+	"time"
 
 	//	"strings"
 
@@ -15,7 +15,9 @@ import (
 	"os"
 	"os/exec"
 
+	//"bytes"
 	"github.com/gocolly/colly/v2"
+	//"github.com/mohae/struct2csv"
 )
 
 type Option func(c Clanek) Clanek
@@ -196,12 +198,18 @@ func main() {
 	sortByDate(clanky)
 
 	clearTmp("/tmp/dates.txt")
+
 	for _, clanek := range clanky {
 		clanek.PrettyPrint()
 		//getSchedule(clanek.Date, clanek.Show)
 		//writeDates("/tmp/dates.txt",fmt.Sprintf("%s; %s\n",clanek.Date, clanek.Show))
 		writeDates("/tmp/dates.txt", fmt.Sprintf("%s\n", clanek.Date))
 	}
+
+	currentTime := time.Now()
+	today := fmt.Sprintf("%s", currentTime.Format("2006-01-02"))
+
+	writeCSV(fmt.Sprintf("%s_publicistika.tsv", today), clanky)
 
 }
 
@@ -226,6 +234,42 @@ func writeDates(filename string, text string) {
 		panic(err)
 	}
 }
+
+func writeCSV(filename string, clanky []Clanek) {
+	file, err := os.Create(filename)
+	defer file.Close()
+
+	if err != nil {
+		log.Fatalln("failed to open file", err)
+	}
+
+	w := csv.NewWriter(file)
+	w.Comma = '\t'
+
+	header := []string{"Pořad", "Datum", "Název", "Popis", "Odkaz"}
+	w.Write(header)
+
+	defer w.Flush()
+	var data [][]string
+	for _, clanek := range clanky {
+		row := []string{clanek.Show, clanek.Date, clanek.Title, clanek.Description, clanek.Link}
+		data = append(data, row)
+	}
+	w.WriteAll(data)
+
+}
+
+/*
+marshalling / unmarshalling csv
+func writeCSV(filename string, clanky []Clanek){
+  w := csv.NewWriter(os.Stdout)
+	for _, clanek := range clanky {
+          headers :=
+
+        }
+
+}
+*/
 
 func readCsvFile(filePath string) [][]string {
 	f, err := os.Open(filePath)
