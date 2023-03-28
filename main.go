@@ -253,13 +253,13 @@ func writeCSV(filename string, clanky []Clanek) {
 	w := csv.NewWriter(file)
 	w.Comma = '\t'
 
-	header := []string{"Pořad", "Datum", "Čas", "Název", "Moderátor", "Host", "Popis", "Odkaz"}
+	header := []string{"Pořad", "Datum", "Čas", "Moderátor", "Host", "Název", "Popis", "Odkaz"}
 	w.Write(header)
 
 	defer w.Flush()
 	var data [][]string
 	for _, clanek := range clanky {
-		row := []string{clanek.Show, clanek.Date, clanek.Time, clanek.Title, clanek.Moderator, clanek.Guests, clanek.Description, clanek.Link}
+		row := []string{clanek.Show, clanek.Date, clanek.Time, clanek.Moderator, clanek.Guests, clanek.Title, clanek.Description, clanek.Link}
 		data = append(data, row)
 	}
 	w.WriteAll(data)
