@@ -1,5 +1,4 @@
 #!/bin/bash
 
 ./publicistika-scraper -p 2
-./getSchedule.sh
-./filterPorady.sh
+./cleanup.sh
