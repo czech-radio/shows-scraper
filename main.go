@@ -32,7 +32,7 @@ type Clanek struct {
 	Show      string
 	Time      string
 	Moderator string
-	Guests    []string
+	Guests    string
 }
 
 func NewClanek(title string, date string, description string, link string, options ...Option) Clanek {
@@ -87,32 +87,20 @@ func AddShow(show string) Option {
 	}
 }
 
-func AddTime(time string) Option {
-	return func(c Clanek) Clanek {
-		c.Time = time
-		return c
-	}
+func (clanek *Clanek) AddTime(time string) {
+	clanek.Time = time
 }
 
-func AddModerator(moderator string) Option {
-	return func(c Clanek) Clanek {
-		c.Moderator = moderator
-		return c
-	}
+func (clanek *Clanek) AddModerator(moderator string) {
+	clanek.Moderator = moderator
 }
 
-func AddGuests(guests []string) Option {
-	return func(c Clanek) Clanek {
-		c.Guests = guests
-		return c
-	}
+func (clanek *Clanek) AddGuests(guests string) {
+	clanek.Guests = guests
 }
 
-func AddTeaser(teaser string) Option {
-	return func(c Clanek) Clanek {
-		c.Teaser = teaser
-		return c
-	}
+func (clanek *Clanek) AddTeaser(teaser string) {
+	clanek.Teaser = teaser
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -200,17 +188,36 @@ func main() {
 	clearTmp("/tmp/dates.txt")
 
 	for _, clanek := range clanky {
-		clanek.PrettyPrint()
+		//clanek.PrettyPrint()
 		//getSchedule(clanek.Date, clanek.Show)
 		//writeDates("/tmp/dates.txt",fmt.Sprintf("%s; %s\n",clanek.Date, clanek.Show))
 		writeDates("/tmp/dates.txt", fmt.Sprintf("%s\n", clanek.Date))
 	}
 
+	runScript("./getSchedule.sh")
+	runScript("./filterPorady.sh")
+
 	currentTime := time.Now()
 	today := fmt.Sprintf("%s", currentTime.Format("2006-01-02"))
 
-	writeCSV(fmt.Sprintf("%s_publicistika.tsv", today), clanky)
+	enrichedClanky := readCsvFields(fmt.Sprintf("%s_porady_schedule.tsv", today), clanky)
 
+	fmt.Printf("Clanek.Time=%s", enrichedClanky[0].Time)
+
+	writeCSV(fmt.Sprintf("%s_publicistika.tsv", today), enrichedClanky)
+
+}
+
+func runScript(command string) {
+	cmd := exec.Command(command)
+	stdout, err := cmd.Output()
+
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+
+	fmt.Print(string(stdout))
 }
 
 func clearTmp(filename string) {
@@ -246,32 +253,20 @@ func writeCSV(filename string, clanky []Clanek) {
 	w := csv.NewWriter(file)
 	w.Comma = '\t'
 
-	header := []string{"Pořad", "Datum", "Název", "Popis", "Odkaz"}
+	header := []string{"Pořad", "Datum", "Čas", "Název", "Moderátor", "Host", "Popis", "Odkaz"}
 	w.Write(header)
 
 	defer w.Flush()
 	var data [][]string
 	for _, clanek := range clanky {
-		row := []string{clanek.Show, clanek.Date, clanek.Title, clanek.Description, clanek.Link}
+		row := []string{clanek.Show, clanek.Date, clanek.Time, clanek.Title, clanek.Moderator, clanek.Guests, clanek.Description, clanek.Link}
 		data = append(data, row)
 	}
 	w.WriteAll(data)
 
 }
 
-/*
-marshalling / unmarshalling csv
-func writeCSV(filename string, clanky []Clanek){
-  w := csv.NewWriter(os.Stdout)
-	for _, clanek := range clanky {
-          headers :=
-
-        }
-
-}
-*/
-
-func readCsvFile(filePath string) [][]string {
+func readCsvFields(filePath string, clanky []Clanek) []Clanek {
 	f, err := os.Open(filePath)
 	if err != nil {
 		log.Fatal("Unable to read input file "+filePath, err)
@@ -279,10 +274,23 @@ func readCsvFile(filePath string) [][]string {
 	defer f.Close()
 
 	csvReader := csv.NewReader(f)
+	csvReader.Comma = '\t'
+
 	records, err := csvReader.ReadAll()
 	if err != nil {
 		log.Fatal("Unable to parse file as CSV for "+filePath, err)
 	}
 
-	return records
+	// weird [i] but it works
+	for i, clanek := range clanky {
+		for _, row := range records {
+			if clanek.Date == row[0] && clanek.Show == row[2] {
+				clanky[i].Time = row[1]
+				clanky[i].Moderator = row[3]
+				clanky[i].Guests = row[4]
+			}
+		}
+	}
+
+	return clanky
 }
