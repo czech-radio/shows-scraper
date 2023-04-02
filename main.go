@@ -170,7 +170,7 @@ func main() {
 	*/
 
 	for i := 0; i < *noPages; i++ {
-		showName = "Hlavní zprávy, rozhovory a publicistika"
+		showName = "Hlavní zprávy - rozhovory, komentáře"
 		c.Visit(fmt.Sprintf("https://plus.rozhlas.cz/hlavni-zpravy-rozhovory-a-komentare-5997846?page=%d", i))
 
 		showName = "Pro a proti"
@@ -191,7 +191,7 @@ func main() {
 		//clanek.PrettyPrint()
 		//getSchedule(clanek.Date, clanek.Show)
 		//writeDates("/tmp/dates.txt",fmt.Sprintf("%s; %s\n",clanek.Date, clanek.Show))
-		writeDates("/tmp/dates.txt", fmt.Sprintf("%s\n", clanek.Date))
+		writeFile("/tmp/dates.txt", fmt.Sprintf("%s\n", clanek.Date))
 	}
 
 	runScript("./getSchedule.sh")
@@ -200,11 +200,23 @@ func main() {
 	currentTime := time.Now()
 	today := fmt.Sprintf("%s", currentTime.Format("2006-01-02"))
 
-	enrichedClanky := readCsvFields(fmt.Sprintf("%s_porady_schedule.tsv", today), clanky)
+        // get schedule fileds
+	clanky = readCsvFields(fmt.Sprintf("%s_porady_schedule.tsv", today), clanky)
+	//fmt.Printf("Clanek.Time=%s", enrichedClanky[0].Time)
 
-	fmt.Printf("Clanek.Time=%s", enrichedClanky[0].Time)
 
-	writeCSV(fmt.Sprintf("%s_publicistika.tsv", today), enrichedClanky)
+        // TODO: get persons from moderator fields
+        clearTmp("/tmp/geneea_inputs.txt")
+
+	for index, clanek := range clanky {
+          writeFile("/tmp/geneea_inputs.txt", fmt.Sprintf("%02d: %s\n", index, clanek.Guests))
+	}
+        runScript("./getPersons.sh")
+
+
+
+        // write the complete output
+	writeCSV(fmt.Sprintf("%s_publicistika.tsv", today), clanky)
 
 }
 
@@ -228,7 +240,7 @@ func clearTmp(filename string) {
 
 }
 
-func writeDates(filename string, text string) {
+func writeFile(filename string, text string) {
 
 	f, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
