@@ -79,6 +79,9 @@ func (clanek *Clanek) PrettyPrint() {
 	fmt.Printf("Pořad: %s\nNázev: %s\nDatum: %s\nObsah: %s\nLink : %s\n\n", clanek.Show, clanek.Title, clanek.Date, clanek.Description, clanek.Link)
 }
 
+
+////////// WIP call geneea
+
 func callGeneea(input string) string {
 
 	url := "https://api.geneea.com/v3/analysis/T:CRo-transcripts"
@@ -105,6 +108,8 @@ func callGeneea(input string) string {
 	return res
 
 }
+
+////////// WIP call schedules
 
 func getSchedules(date string, stationId string) {
 
