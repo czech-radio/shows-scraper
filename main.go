@@ -116,8 +116,8 @@ func processGuests(clanek Clanek) Clanek {
 
 	/*
 
-	        var persons []Person
-		return json.Unmarshall([]byte(res), &persons)
+		        var persons []Person
+			return json.Unmarshall([]byte(res), &persons)
 	*/
 
 	return clanek
@@ -286,12 +286,12 @@ func main() {
 	}
 
 	/*
-	        clearTmp("/tmp/geneea_inputs.txt")
+		        clearTmp("/tmp/geneea_inputs.txt")
 
-		for index, clanek := range clanky {
-			writeFile("/tmp/geneea_inputs.txt", fmt.Sprintf("%02d: %s\n", index, clanek.Guests))
-		}
-		runScript("./getPersons.sh")
+			for index, clanek := range clanky {
+				writeFile("/tmp/geneea_inputs.txt", fmt.Sprintf("%02d: %s\n", index, clanek.Guests))
+			}
+			runScript("./getPersons.sh")
 	*/
 
 	// write the complete output
