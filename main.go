@@ -8,17 +8,18 @@ import (
 	"strings"
 	"time"
 
-	//	"strings"
-
 	"encoding/csv"
+	//"encoding/json"
+	"io"
 	"log"
 	"os"
 	"os/exec"
 
+	//"strings"
 	//"bytes"
+
 	"github.com/gocolly/colly/v2"
 	"net/http"
-	//"github.com/mohae/struct2csv"
 )
 
 type Option func(c Clanek) Clanek
@@ -79,10 +80,9 @@ func (clanek *Clanek) PrettyPrint() {
 	fmt.Printf("Pořad: %s\nNázev: %s\nDatum: %s\nObsah: %s\nLink : %s\n\n", clanek.Show, clanek.Title, clanek.Date, clanek.Description, clanek.Link)
 }
 
-
 ////////// WIP call geneea
 
-func callGeneea(input string) string {
+func processGuests(clanek Clanek) Clanek {
 
 	url := "https://api.geneea.com/v3/analysis/T:CRo-transcripts"
 
@@ -95,30 +95,53 @@ func callGeneea(input string) string {
 	apiKey := fmt.Sprintf("%s", os.Getenv("GENEEA_API_KEY"))
 
 	req.Header = http.Header{
-		"Host":          {"https://api.geneea.com/v3/analysis/T:CRo-transcripts"},
+		"Host":          {url},
 		"Content-Type":  {"application/json"},
-		"Authorization": {fmt.Sprtinf("user_key %s", apiKey)},
+		"Authorization": {fmt.Sprintf("user_key %s", apiKey)},
 	}
 
 	res, err := client.Do(req)
+	defer res.Body.Close()
 	if err != nil {
 		//Handle Error
 	}
 
-	return res
+	b, err := io.ReadAll(res.Body)
+	// b, err := ioutil.ReadAll(resp.Body)  Go.1.15 and earlier
+	if err != nil {
+		log.Fatalln(err)
+	}
 
+	fmt.Println(string(b))
+
+	/*
+
+	        var persons []Person
+		return json.Unmarshall([]byte(res), &persons)
+	*/
+
+	return clanek
+}
+
+type Person struct {
+	fullName string
+	role     string
 }
 
 ////////// WIP call schedules
 
-func getSchedules(date string, stationId string) {
+func getSchedules(clanek Clanek) Clanek {
 
-	split := strings.Split(date, "-")
+	split := strings.Split(clanek.Date, "-")
 	year, month, day := split[0], split[1], split[2]
 	id = ""
 	url := "https://api.rozhlas.cz/data/v2"
 	dayData := fmt.Sprintf("%s/%s/%s/%s/%s/%s", url, "schedule/day", year, month, day, stationId)
+
+	// TODO API GET call here
+
 	fmt.Println(dayData)
+	return clanek
 }
 
 //// optional fields ///////////////////////////////////////////////////
@@ -150,12 +173,14 @@ func (clanek *Clanek) AddTeaser(teaser string) {
 
 var showName string
 
+/*
 func getSchedule(date string, porad string) {
 	cmd := exec.Command("./getSchedule.sh", date, porad)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	fmt.Println(cmd.Run())
 }
+*/
 
 func convertDate(input string) string {
 	s := strings.Split(input, " ")
@@ -228,32 +253,46 @@ func main() {
 
 	sortByDate(clanky)
 
-	clearTmp("/tmp/dates.txt")
+	/*
+		clearTmp("/tmp/dates.txt")
 
-	for _, clanek := range clanky {
-		//clanek.PrettyPrint()
-		//getSchedule(clanek.Date, clanek.Show)
-		//writeDates("/tmp/dates.txt",fmt.Sprintf("%s; %s\n",clanek.Date, clanek.Show))
-		writeFile("/tmp/dates.txt", fmt.Sprintf("%s\n", clanek.Date))
-	}
+		for _, clanek := range clanky {
+			//clanek.PrettyPrint()
+			//getSchedule(clanek.Date, clanek.Show)
+			//writeDates("/tmp/dates.txt",fmt.Sprintf("%s; %s\n",clanek.Date, clanek.Show))
+			writeFile("/tmp/dates.txt", fmt.Sprintf("%s\n", clanek.Date))
+		}
 
-	runScript("./getSchedule.sh")
-	runScript("./filterPorady.sh")
-
+		runScript("./getSchedule.sh")
+		runScript("./filterPorady.sh")
+	*/
 	currentTime := time.Now()
 	today := fmt.Sprintf("%s", currentTime.Format("2006-01-02"))
 
 	// get schedule fileds
-	clanky = readCsvFields(fmt.Sprintf("%s_porady_schedule.tsv", today), clanky)
+	// clanky = readCsvFields(fmt.Sprintf("%s_porady_schedule.tsv", today), clanky)
 	//fmt.Printf("Clanek.Time=%s", enrichedClanky[0].Time)
 
 	// TODO: get persons from moderator fields
-	clearTmp("/tmp/geneea_inputs.txt")
-
+	// call Geneea to mod description here
 	for index, clanek := range clanky {
-		writeFile("/tmp/geneea_inputs.txt", fmt.Sprintf("%02d: %s\n", index, clanek.Guests))
+		clanek[index] = getSchedules(clanek)
 	}
-	runScript("./getPersons.sh")
+
+	// TODO: get persons from moderator fields
+	// call Geneea to mod description here
+	for index, clanek := range clanky {
+		clanek[index] = getPersons(clanek)
+	}
+
+	/*
+	        clearTmp("/tmp/geneea_inputs.txt")
+
+		for index, clanek := range clanky {
+			writeFile("/tmp/geneea_inputs.txt", fmt.Sprintf("%02d: %s\n", index, clanek.Guests))
+		}
+		runScript("./getPersons.sh")
+	*/
 
 	// write the complete output
 	writeCSV(fmt.Sprintf("%s_publicistika.tsv", today), clanky)
