@@ -17,6 +17,7 @@ import (
 
 	//"bytes"
 	"github.com/gocolly/colly/v2"
+	"net/http"
 	//"github.com/mohae/struct2csv"
 )
 
@@ -76,6 +77,43 @@ func sortByDate(clanky []Clanek) {
 
 func (clanek *Clanek) PrettyPrint() {
 	fmt.Printf("Pořad: %s\nNázev: %s\nDatum: %s\nObsah: %s\nLink : %s\n\n", clanek.Show, clanek.Title, clanek.Date, clanek.Description, clanek.Link)
+}
+
+func callGeneea(input string) string {
+
+	url := "https://api.geneea.com/v3/analysis/T:CRo-transcripts"
+
+	client := http.Client{}
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		//Handle Error
+	}
+
+	apiKey := fmt.Sprintf("%s", os.Getenv("GENEEA_API_KEY"))
+
+	req.Header = http.Header{
+		"Host":          {"https://api.geneea.com/v3/analysis/T:CRo-transcripts"},
+		"Content-Type":  {"application/json"},
+		"Authorization": {fmt.Sprtinf("user_key %s", apiKey)},
+	}
+
+	res, err := client.Do(req)
+	if err != nil {
+		//Handle Error
+	}
+
+	return res
+
+}
+
+func getSchedules(date string, stationId string) {
+
+	split := strings.Split(date, "-")
+	year, month, day := split[0], split[1], split[2]
+	id = ""
+	url := "https://api.rozhlas.cz/data/v2"
+	dayData := fmt.Sprintf("%s/%s/%s/%s/%s/%s", url, "schedule/day", year, month, day, stationId)
+	fmt.Println(dayData)
 }
 
 //// optional fields ///////////////////////////////////////////////////
@@ -200,22 +238,19 @@ func main() {
 	currentTime := time.Now()
 	today := fmt.Sprintf("%s", currentTime.Format("2006-01-02"))
 
-        // get schedule fileds
+	// get schedule fileds
 	clanky = readCsvFields(fmt.Sprintf("%s_porady_schedule.tsv", today), clanky)
 	//fmt.Printf("Clanek.Time=%s", enrichedClanky[0].Time)
 
-
-        // TODO: get persons from moderator fields
-        clearTmp("/tmp/geneea_inputs.txt")
+	// TODO: get persons from moderator fields
+	clearTmp("/tmp/geneea_inputs.txt")
 
 	for index, clanek := range clanky {
-          writeFile("/tmp/geneea_inputs.txt", fmt.Sprintf("%02d: %s\n", index, clanek.Guests))
+		writeFile("/tmp/geneea_inputs.txt", fmt.Sprintf("%02d: %s\n", index, clanek.Guests))
 	}
-        runScript("./getPersons.sh")
+	runScript("./getPersons.sh")
 
-
-
-        // write the complete output
+	// write the complete output
 	writeCSV(fmt.Sprintf("%s_publicistika.tsv", today), clanky)
 
 }
