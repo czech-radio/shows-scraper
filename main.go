@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"encoding/csv"
-//	"encoding/json"
+	"encoding/json"
 	"io"
 	"io/ioutil"
 	"log"
@@ -19,8 +19,8 @@ import (
 	//"strings"
 	//"bytes"
 
-        "github.com/thedevsaddam/gojsonq"
 	"github.com/gocolly/colly/v2"
+	"github.com/tidwall/gjson"
 	"net/http"
 )
 
@@ -168,6 +168,14 @@ type Person struct {
 
 ////////// WIP call schedules
 
+func UnescapeUnicodeCharactersInJSON(jsonRaw json.RawMessage) (json.RawMessage, error) {
+	str, err := strconv.Unquote(strings.Replace(strconv.Quote(string(jsonRaw)), `\\u`, `\u`, -1))
+	if err != nil {
+		return nil, err
+	}
+	return []byte(str), nil
+}
+
 func getSchedules(article Article) Article {
 
 	split := strings.Split(article.Date, "-")
@@ -205,25 +213,24 @@ func getSchedules(article Article) Article {
 
 	//fmt.Printf("client: response body: %s\n", resBody)
 
+	unescaped, err := UnescapeUnicodeCharactersInJSON(resBody)
+	if err != nil {
+		fmt.Printf("there was an error unescaping json: %s\n", err.Error())
+	}
+	data := gjson.Get(string(unescaped), "data.#.title")
 
-
-        data := gojsonq.New().FromString(string(resBody)).From("data")
-        
-        fmt.Printf("%#v\n",data.Nth(0))
-
+	fmt.Printf("%s\n", data)
 
 	//var shows []*Show
-	
 
+	/*
+	        err = json.Unmarshal([]byte(resBody), &shows)
+		if err != nil {
+			fmt.Println("error parsing response: " + err.Error())
+		}
 
-        /*
-        err = json.Unmarshal([]byte(resBody), &shows)
-	if err != nil {
-		fmt.Println("error parsing response: " + err.Error())
-	}
-
-	//fmt.Println(json.MarshalIndent(shows, "", " "))
-*/
+		//fmt.Println(json.MarshalIndent(shows, "", " "))
+	*/
 
 	return article
 }
