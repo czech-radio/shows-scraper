@@ -16,12 +16,10 @@ import (
 	"os"
 	"os/exec"
 
-	//"strings"
-	//"bytes"
+	"net/http"
 
 	"github.com/gocolly/colly/v2"
 	"github.com/tidwall/gjson"
-	"net/http"
 )
 
 type Option func(c Article) Article
@@ -38,30 +36,6 @@ type Article struct {
 	Moderator string
 	Guests    string
 }
-
-/*
-type Show struct {
-	Station     string    `json:"station"`
-	ID          int       `json:"id"`
-	Title       string    `json:"title"`
-	Description string    `json:"description"`
-	Since       time.Time `json:"since"`
-	Till        time.Time `json:"till"`
-	Repetition  bool      `json:"repetition"`
-	Type        struct {
-		ID   int    `json:"id"`
-		Code string `json:"code"`
-		Name string `json:"name"`
-	} `json:"type"`
-	Edition struct {
-		ID      int    `json:"id"`
-		Profile string `json:"profile"`
-		Archive any    `json:"archive"`
-		Asset   string `json:"asset"`
-	} `json:"edition"`
-	Persons []any `json:"persons"`
-}
-*/
 
 type Show struct {
 	Station     string `json:"station"`
@@ -180,8 +154,6 @@ func getSchedules(article Article) Article {
 
 	split := strings.Split(article.Date, "-")
 	year, month, day := split[0], split[1], split[2]
-	//id "0" = radiozurnal
-	//id "3" = plus
 
 	id := "plus.json"
 	url := "https://api.rozhlas.cz/data/v2"
@@ -189,7 +161,6 @@ func getSchedules(article Article) Article {
 
 	// TODO API GET call here
 
-	fmt.Println(url)
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		fmt.Printf("client: could not create request: %s\n", err)
@@ -202,8 +173,8 @@ func getSchedules(article Article) Article {
 		os.Exit(1)
 	}
 
-	fmt.Printf("client: got response!\n")
-	fmt.Printf("client: status code: %d\n", res.StatusCode)
+	//fmt.Printf("client: got response!\n")
+	//fmt.Printf("client: status code: %d\n", res.StatusCode)
 
 	resBody, err := ioutil.ReadAll(res.Body)
 	if err != nil {
@@ -211,36 +182,22 @@ func getSchedules(article Article) Article {
 		os.Exit(1)
 	}
 
-	//fmt.Printf("client: response body: %s\n", resBody)
-
 	unescaped, err := UnescapeUnicodeCharactersInJSON(resBody)
 	if err != nil {
 		fmt.Printf("there was an error unescaping json: %s\n", err.Error())
 	}
-	data := gjson.Get(string(unescaped), "data" )
-        data.ForEach(func(key, value gjson.Result) bool {
-              
-          attrs := gjson.GetMany(value.String(),"title","since","description","repetition","persons")
-            if attrs[0].String() == article.Show && attrs[3].String() == "false" {
-                article.Time = attrs[1].String()
-                article.Description = attrs[2].String()
-                article.Guests = attrs[4].String()
-                fmt.Printf("%s, %s, %s, %s, %s\n",article.Title,article.Date,article.Time,article.Description,article.Guests)
-            }
-              return true
-        })
+	data := gjson.Get(string(unescaped), "data")
+	data.ForEach(func(key, value gjson.Result) bool {
 
-
-	//var shows []*Show
-
-	/*
-	        err = json.Unmarshal([]byte(resBody), &shows)
-		if err != nil {
-			fmt.Println("error parsing response: " + err.Error())
+		attrs := gjson.GetMany(value.String(), "title", "since", "description", "repetition", "persons.#.name")
+		if attrs[0].String() == article.Show {
+			article.Time = strings.Split(attrs[1].String(), "T")[1]
+			article.Description = attrs[2].String()
+			article.Moderator = attrs[4].String()
+			//fmt.Printf("%s, %s, %s, %s, %s\n",article.Title,article.Date,article.Time,article.Description,article.Guests)
 		}
-
-		//fmt.Println(json.MarshalIndent(shows, "", " "))
-	*/
+		return true
+	})
 
 	return article
 }
@@ -273,15 +230,6 @@ func (article *Article) AddTeaser(teaser string) {
 /////////////////////////////////////////////////////////////////////////
 
 var showName string
-
-/*
-func getSchedule(date string, porad string) {
-	cmd := exec.Command("./getSchedule.sh", date, porad)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	fmt.Println(cmd.Run())
-}
-*/
 
 func convertDate(input string) string {
 	s := strings.Split(input, " ")
@@ -354,46 +302,19 @@ func main() {
 
 	sortByDate(articles)
 
-	/*
-		clearTmp("/tmp/dates.txt")
-
-		for _, article := range articles {
-			//article.PrettyPrint()
-			//getSchedule(article.Date, article.Show)
-			//writeDates("/tmp/dates.txt",fmt.Sprintf("%s; %s\n",article.Date, article.Show))
-			writeFile("/tmp/dates.txt", fmt.Sprintf("%s\n", article.Date))
-		}
-
-		runScript("./getSchedule.sh")
-		runScript("./filterPorady.sh")
-	*/
 	currentTime := time.Now()
 	today := fmt.Sprintf("%s", currentTime.Format("2006-01-02"))
 
-	// get schedule fileds
-	// articles = readCsvFields(fmt.Sprintf("%s_porady_schedule.tsv", today), articles)
-	//fmt.Printf("Article.Time=%s", enrichedClanky[0].Time)
-
 	// TODO: get persons from moderator fields
-	// call Geneea to mod description here
 	for index, article := range articles {
 		articles[index] = getSchedules(article)
 	}
 
-	// TODO: get persons from moderator fields
-	// call Geneea to mod description here
+	// TODO: call Geneea to mod description here
 	/*
 	           for index, article := range articles {
 	   		article[index] = processGuests(article)
 	   	}
-	*/
-	/*
-		        clearTmp("/tmp/geneea_inputs.txt")
-
-			for index, article := range articles {
-				writeFile("/tmp/geneea_inputs.txt", fmt.Sprintf("%02d: %s\n", index, article.Guests))
-			}
-			runScript("./getPersons.sh")
 	*/
 
 	// write the complete output
