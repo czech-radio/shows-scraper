@@ -221,10 +221,11 @@ func getSchedules(article Article) Article {
         data.ForEach(func(key, value gjson.Result) bool {
               
           attrs := gjson.GetMany(value.String(),"title","since","description","repetition","persons")
-            if attrs[0].String() == article.Title && attrs[3].String() == "false" {
+            if attrs[0].String() == article.Show && attrs[3].String() == "false" {
                 article.Time = attrs[1].String()
                 article.Description = attrs[2].String()
-                //article.Person = attrs[4].String()
+                article.Guests = attrs[4].String()
+                fmt.Printf("%s, %s, %s, %s, %s\n",article.Title,article.Date,article.Time,article.Description,article.Guests)
             }
               return true
         })
