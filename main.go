@@ -39,6 +39,7 @@ type Article struct {
 	Guests    string
 }
 
+/*
 type Show struct {
 	Station     string    `json:"station"`
 	ID          int       `json:"id"`
@@ -60,18 +61,17 @@ type Show struct {
 	} `json:"edition"`
 	Persons []any `json:"persons"`
 }
-
-/*
-type Show struct {
-	station     string `json:"station"`
-	id          int    `json:"id"`
-	title       string `json:"title"`
-	description string `json:"description"`
-	since       string `json:"since"`
-	till        string `json:"till"`
-	repetition  string `json:"repetition"`
-}
 */
+
+type Show struct {
+	Station     string `json:"station"`
+	Id          int    `json:"id"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Since       string `json:"since"`
+	Till        string `json:"till"`
+	Repetition  string `json:"repetition"`
+}
 
 func NewArticle(title string, date string, description string, link string, options ...Option) Article {
 	c := Article{}
@@ -217,9 +217,18 @@ func getSchedules(article Article) Article {
 	if err != nil {
 		fmt.Printf("there was an error unescaping json: %s\n", err.Error())
 	}
-	data := gjson.Get(string(unescaped), "data.#.title")
+	data := gjson.Get(string(unescaped), "data" )
+        data.ForEach(func(key, value gjson.Result) bool {
+              
+          attrs := gjson.GetMany(value.String(),"title","since","description","repetition","persons")
+            if attrs[0].String() == article.Title && attrs[3].String() == "false" {
+                article.Time = attrs[1].String()
+                article.Description = attrs[2].String()
+                //article.Person = attrs[4].String()
+            }
+              return true
+        })
 
-	fmt.Printf("%s\n", data)
 
 	//var shows []*Show
 
