@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"encoding/csv"
-	"encoding/json"
+//	"encoding/json"
 	"io"
 	"io/ioutil"
 	"log"
@@ -19,6 +19,7 @@ import (
 	//"strings"
 	//"bytes"
 
+        "github.com/thedevsaddam/gojsonq"
 	"github.com/gocolly/colly/v2"
 	"net/http"
 )
@@ -204,12 +205,25 @@ func getSchedules(article Article) Article {
 
 	//fmt.Printf("client: response body: %s\n", resBody)
 
-	var shows []*Show
-	err = json.Unmarshal(resBody["data"], &shows)
+
+
+        data := gojsonq.New().FromString(string(resBody)).From("data")
+        
+        fmt.Printf("%#v\n",data.Nth(0))
+
+
+	//var shows []*Show
+	
+
+
+        /*
+        err = json.Unmarshal([]byte(resBody), &shows)
 	if err != nil {
 		fmt.Println("error parsing response: " + err.Error())
 	}
-	fmt.Println(json.MarshalIndent(shows, "", " "))
+
+	//fmt.Println(json.MarshalIndent(shows, "", " "))
+*/
 
 	return article
 }
