@@ -11,6 +11,7 @@ import (
 	"encoding/csv"
 	//"encoding/json"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -22,9 +23,9 @@ import (
 	"net/http"
 )
 
-type Option func(c Clanek) Clanek
+type Option func(c Article) Article
 
-type Clanek struct {
+type Article struct {
 	Title       string
 	Date        string
 	Description string
@@ -37,8 +38,8 @@ type Clanek struct {
 	Guests    string
 }
 
-func NewClanek(title string, date string, description string, link string, options ...Option) Clanek {
-	c := Clanek{}
+func NewArticle(title string, date string, description string, link string, options ...Option) Article {
+	c := Article{}
 	c.Title = title
 	c.Date = date
 	c.Description = description
@@ -63,9 +64,9 @@ func prependZero(input string) string {
 
 }
 
-func sortByDate(clanky []Clanek) {
-	sort.SliceStable(clanky, func(i, j int) bool {
-		ci, cj := fmt.Sprintf("%s %s", clanky[i].Show, clanky[i].Date), fmt.Sprintf("%s %s", clanky[j].Show, clanky[j].Date)
+func sortByDate(articles []Article) {
+	sort.SliceStable(articles, func(i, j int) bool {
+		ci, cj := fmt.Sprintf("%s %s", articles[i].Show, articles[i].Date), fmt.Sprintf("%s %s", articles[j].Show, articles[j].Date)
 
 		switch {
 		case ci != cj:
@@ -76,13 +77,13 @@ func sortByDate(clanky []Clanek) {
 	})
 }
 
-func (clanek *Clanek) PrettyPrint() {
-	fmt.Printf("Pořad: %s\nNázev: %s\nDatum: %s\nObsah: %s\nLink : %s\n\n", clanek.Show, clanek.Title, clanek.Date, clanek.Description, clanek.Link)
+func (article *Article) PrettyPrint() {
+	fmt.Printf("Pořad: %s\nNázev: %s\nDatum: %s\nObsah: %s\nLink : %s\n\n", article.Show, article.Title, article.Date, article.Description, article.Link)
 }
 
 ////////// WIP call geneea
 
-func processGuests(clanek Clanek) Clanek {
+func processGuests(article Article) Article {
 
 	url := "https://api.geneea.com/v3/analysis/T:CRo-transcripts"
 
@@ -112,7 +113,7 @@ func processGuests(clanek Clanek) Clanek {
 		log.Fatalln(err)
 	}
 
-	fmt.Println(string(b))
+	//fmt.Println(string(b))
 
 	/*
 
@@ -120,7 +121,8 @@ func processGuests(clanek Clanek) Clanek {
 			return json.Unmarshall([]byte(res), &persons)
 	*/
 
-	return clanek
+	article.Guests = fmt.Sprintf("%s", string(b))
+	return article
 }
 
 type Person struct {
@@ -130,43 +132,69 @@ type Person struct {
 
 ////////// WIP call schedules
 
-func getSchedules(clanek Clanek) Clanek {
+func getSchedules(article Article) Article {
 
-	split := strings.Split(clanek.Date, "-")
+	split := strings.Split(article.Date, "-")
 	year, month, day := split[0], split[1], split[2]
-	id = ""
+	//id "0" = radiozurnal
+	//id "3" = plus
+
+	id := "3"
 	url := "https://api.rozhlas.cz/data/v2"
-	dayData := fmt.Sprintf("%s/%s/%s/%s/%s/%s", url, "schedule/day", year, month, day, stationId)
+	url = fmt.Sprintf("%s/%s/%s/%s/%s/%s", url, "schedule/day", year, month, day, id)
 
 	// TODO API GET call here
 
-	fmt.Println(dayData)
-	return clanek
+	fmt.Println(url)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		fmt.Printf("client: could not create request: %s\n", err)
+		os.Exit(1)
+	}
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		fmt.Printf("client: error making http request: %s\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Printf("client: got response!\n")
+	fmt.Printf("client: status code: %d\n", res.StatusCode)
+
+	resBody, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		fmt.Printf("client: could not read response body: %s\n", err)
+		os.Exit(1)
+	}
+	fmt.Printf("client: response body: %s\n", resBody)
+	fmt.Println(resBody)
+
+	return article
 }
 
 //// optional fields ///////////////////////////////////////////////////
 
 func AddShow(show string) Option {
-	return func(c Clanek) Clanek {
+	return func(c Article) Article {
 		c.Show = show
 		return c
 	}
 }
 
-func (clanek *Clanek) AddTime(time string) {
-	clanek.Time = time
+func (article *Article) AddTime(time string) {
+	article.Time = time
 }
 
-func (clanek *Clanek) AddModerator(moderator string) {
-	clanek.Moderator = moderator
+func (article *Article) AddModerator(moderator string) {
+	article.Moderator = moderator
 }
 
-func (clanek *Clanek) AddGuests(guests string) {
-	clanek.Guests = guests
+func (article *Article) AddGuests(guests string) {
+	article.Guests = guests
 }
 
-func (clanek *Clanek) AddTeaser(teaser string) {
-	clanek.Teaser = teaser
+func (article *Article) AddTeaser(teaser string) {
+	article.Teaser = teaser
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -215,7 +243,7 @@ func main() {
 	flag.Parse()
 
 	c := colly.NewCollector()
-	clanky := make([]Clanek, 0)
+	articles := make([]Article, 0)
 
 	// Find and visit all links
 	c.OnHTML(".b-022__block", func(e *colly.HTMLElement) {
@@ -225,8 +253,8 @@ func main() {
 			popis := e.ChildText("p")
 			link := fmt.Sprintf("https://radiozurnal.rozhlas.cz%s", e.ChildAttr("h3 a", "href"))
 
-			novyClanek := NewClanek(nadpis, datum, popis, link, AddShow(showName))
-			clanky = append(clanky, novyClanek)
+			novyArticle := NewArticle(nadpis, datum, popis, link, AddShow(showName))
+			articles = append(articles, novyArticle)
 
 		}
 	})
@@ -251,16 +279,16 @@ func main() {
 		c.Visit(fmt.Sprintf("https://plus.rozhlas.cz/interview-plus-6504167?page=%d", i))
 	}
 
-	sortByDate(clanky)
+	sortByDate(articles)
 
 	/*
 		clearTmp("/tmp/dates.txt")
 
-		for _, clanek := range clanky {
-			//clanek.PrettyPrint()
-			//getSchedule(clanek.Date, clanek.Show)
-			//writeDates("/tmp/dates.txt",fmt.Sprintf("%s; %s\n",clanek.Date, clanek.Show))
-			writeFile("/tmp/dates.txt", fmt.Sprintf("%s\n", clanek.Date))
+		for _, article := range articles {
+			//article.PrettyPrint()
+			//getSchedule(article.Date, article.Show)
+			//writeDates("/tmp/dates.txt",fmt.Sprintf("%s; %s\n",article.Date, article.Show))
+			writeFile("/tmp/dates.txt", fmt.Sprintf("%s\n", article.Date))
 		}
 
 		runScript("./getSchedule.sh")
@@ -270,32 +298,33 @@ func main() {
 	today := fmt.Sprintf("%s", currentTime.Format("2006-01-02"))
 
 	// get schedule fileds
-	// clanky = readCsvFields(fmt.Sprintf("%s_porady_schedule.tsv", today), clanky)
-	//fmt.Printf("Clanek.Time=%s", enrichedClanky[0].Time)
+	// articles = readCsvFields(fmt.Sprintf("%s_porady_schedule.tsv", today), articles)
+	//fmt.Printf("Article.Time=%s", enrichedClanky[0].Time)
 
 	// TODO: get persons from moderator fields
 	// call Geneea to mod description here
-	for index, clanek := range clanky {
-		clanek[index] = getSchedules(clanek)
+	for index, article := range articles {
+		articles[index] = getSchedules(article)
 	}
 
 	// TODO: get persons from moderator fields
 	// call Geneea to mod description here
-	for index, clanek := range clanky {
-		clanek[index] = getPersons(clanek)
-	}
-
+	/*
+	           for index, article := range articles {
+	   		article[index] = processGuests(article)
+	   	}
+	*/
 	/*
 		        clearTmp("/tmp/geneea_inputs.txt")
 
-			for index, clanek := range clanky {
-				writeFile("/tmp/geneea_inputs.txt", fmt.Sprintf("%02d: %s\n", index, clanek.Guests))
+			for index, article := range articles {
+				writeFile("/tmp/geneea_inputs.txt", fmt.Sprintf("%02d: %s\n", index, article.Guests))
 			}
 			runScript("./getPersons.sh")
 	*/
 
 	// write the complete output
-	writeCSV(fmt.Sprintf("%s_publicistika.tsv", today), clanky)
+	writeCSV(fmt.Sprintf("%s_publicistika.tsv", today), articles)
 
 }
 
@@ -333,7 +362,7 @@ func writeFile(filename string, text string) {
 	}
 }
 
-func writeCSV(filename string, clanky []Clanek) {
+func writeCSV(filename string, articles []Article) {
 	file, err := os.Create(filename)
 	defer file.Close()
 
@@ -349,15 +378,15 @@ func writeCSV(filename string, clanky []Clanek) {
 
 	defer w.Flush()
 	var data [][]string
-	for _, clanek := range clanky {
-		row := []string{clanek.Show, clanek.Date, clanek.Time, clanek.Moderator, clanek.Guests, clanek.Title, clanek.Description, clanek.Link}
+	for _, article := range articles {
+		row := []string{article.Show, article.Date, article.Time, article.Moderator, article.Guests, article.Title, article.Description, article.Link}
 		data = append(data, row)
 	}
 	w.WriteAll(data)
 
 }
 
-func readCsvFields(filePath string, clanky []Clanek) []Clanek {
+func readCsvFields(filePath string, articles []Article) []Article {
 	f, err := os.Open(filePath)
 	if err != nil {
 		log.Fatal("Unable to read input file "+filePath, err)
@@ -373,15 +402,15 @@ func readCsvFields(filePath string, clanky []Clanek) []Clanek {
 	}
 
 	// weird [i] but it works
-	for i, clanek := range clanky {
+	for i, article := range articles {
 		for _, row := range records {
-			if clanek.Date == row[0] && clanek.Show == row[2] {
-				clanky[i].Time = row[1]
-				clanky[i].Moderator = row[3]
-				clanky[i].Guests = row[4]
+			if article.Date == row[0] && article.Show == row[2] {
+				articles[i].Time = row[1]
+				articles[i].Moderator = row[3]
+				articles[i].Guests = row[4]
 			}
 		}
 	}
 
-	return clanky
+	return articles
 }
