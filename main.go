@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"sort"
@@ -10,7 +11,6 @@ import (
 
 	"encoding/csv"
 	"encoding/json"
-	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -37,6 +37,7 @@ type Article struct {
 	Guests    string
 }
 
+/* not used
 type Show struct {
 	Station     string `json:"station"`
 	Id          int    `json:"id"`
@@ -46,6 +47,7 @@ type Show struct {
 	Till        string `json:"till"`
 	Repetition  string `json:"repetition"`
 }
+*/
 
 func NewArticle(title string, date string, description string, link string, options ...Option) Article {
 	c := Article{}
@@ -92,45 +94,42 @@ func (article *Article) PrettyPrint() {
 
 ////////// WIP call geneea
 
-func processGuests(article Article) Article {
+func deriveGuests(article Article) Article {
 
-	url := "https://api.geneea.com/v3/analysis/T:CRo-transcripts"
-
-	client := http.Client{}
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		//Handle Error
-	}
-
+	url := "https://api.geneea.com/v3/analysis/?T=CRo-transcripts"
 	apiKey := fmt.Sprintf("%s", os.Getenv("GENEEA_API_KEY"))
 
-	req.Header = http.Header{
+	body := []byte(fmt.Sprintf(`{"text":"s"}`, article.Description))
+
+	r, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
+	if err != nil {
+		panic(err)
+	}
+
+	r.Header = http.Header{
 		"Host":          {url},
 		"Content-Type":  {"application/json"},
 		"Authorization": {fmt.Sprintf("user_key %s", apiKey)},
 	}
 
-	res, err := client.Do(req)
+	client := &http.Client{}
+	res, err := client.Do(r)
+	if err != nil {
+		panic(err)
+	}
+
 	defer res.Body.Close()
-	if err != nil {
-		//Handle Error
+
+	var geneea_reply map[string]interface{}
+
+	derr := json.NewDecoder(res.Body).Decode(&geneea_reply)
+	if derr != nil {
+		panic(derr)
 	}
 
-	b, err := io.ReadAll(res.Body)
-	// b, err := ioutil.ReadAll(resp.Body)  Go.1.15 and earlier
-	if err != nil {
-		log.Fatalln(err)
-	}
+	fmt.Println(geneea_reply)
 
-	//fmt.Println(string(b))
-
-	/*
-
-		        var persons []Person
-			return json.Unmarshall([]byte(res), &persons)
-	*/
-
-	article.Guests = fmt.Sprintf("%s", string(b))
+	//article.Guests = fmt.Sprintf("%s", string(b))
 	return article
 }
 
@@ -257,6 +256,8 @@ func convertDate(input string) string {
 }
 
 /////////////////////////////////////////////////////////////////////////
+//////        MAIN  /////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
 
 func main() {
 
@@ -311,11 +312,9 @@ func main() {
 	}
 
 	// TODO: call Geneea to mod description here
-	/*
-	           for index, article := range articles {
-	   		article[index] = processGuests(article)
-	   	}
-	*/
+	for index, article := range articles {
+		articles[index] = deriveGuests(article)
+	}
 
 	// write the complete output
 	writeCSV(fmt.Sprintf("%s_publicistika.tsv", today), articles)
