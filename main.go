@@ -39,6 +39,29 @@ type Article struct {
 }
 
 type Show struct {
+	Station     string    `json:"station"`
+	ID          int       `json:"id"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	Since       time.Time `json:"since"`
+	Till        time.Time `json:"till"`
+	Repetition  bool      `json:"repetition"`
+	Type        struct {
+		ID   int    `json:"id"`
+		Code string `json:"code"`
+		Name string `json:"name"`
+	} `json:"type"`
+	Edition struct {
+		ID      int    `json:"id"`
+		Profile string `json:"profile"`
+		Archive any    `json:"archive"`
+		Asset   string `json:"asset"`
+	} `json:"edition"`
+	Persons []any `json:"persons"`
+}
+
+/*
+type Show struct {
 	station     string `json:"station"`
 	id          int    `json:"id"`
 	title       string `json:"title"`
@@ -47,6 +70,7 @@ type Show struct {
 	till        string `json:"till"`
 	repetition  string `json:"repetition"`
 }
+*/
 
 func NewArticle(title string, date string, description string, link string, options ...Option) Article {
 	c := Article{}
@@ -181,11 +205,11 @@ func getSchedules(article Article) Article {
 	//fmt.Printf("client: response body: %s\n", resBody)
 
 	var shows []*Show
-	err = json.UnmarshallJSON(resBody, &shows)
+	err = json.Unmarshal(resBody["data"], &shows)
 	if err != nil {
-		fmt.Println("error parsing response")
+		fmt.Println("error parsing response: " + err.Error())
 	}
-	fmt.Println(json.MarshallIndent(shows, "", " "))
+	fmt.Println(json.MarshalIndent(shows, "", " "))
 
 	return article
 }
