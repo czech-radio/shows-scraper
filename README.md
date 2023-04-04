@@ -2,7 +2,7 @@
 
 Přehled témat, hostů a moderátorů ve vybraných pořadech publicistiky.
 
-[![Go](https://github.com/czech-radio/publicistika-scraper/actions/workflows/go.yml/badge.svg)](https://github.com/czech-radio/publicistika-scraper/actions/workflows/go.yml)
+[![main](https://github.com/czech-radio/publicistika-scraper/actions/workflows/main.yml/badge.svg)](https://github.com/czech-radio/publicistika-scraper/actions/workflows/main.yml)
 
 ## Zadání
 
