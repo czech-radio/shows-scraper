@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"encoding/csv"
-	//"encoding/json"
+	"encoding/json"
 	"io"
 	"io/ioutil"
 	"log"
@@ -36,6 +36,16 @@ type Article struct {
 	Time      string
 	Moderator string
 	Guests    string
+}
+
+type Show struct {
+	station     string `json:"station"`
+	id          int    `json:"id"`
+	title       string `json:"title"`
+	description string `json:"description"`
+	since       string `json:"since"`
+	till        string `json:"till"`
+	repetition  string `json:"repetition"`
 }
 
 func NewArticle(title string, date string, description string, link string, options ...Option) Article {
@@ -126,8 +136,9 @@ func processGuests(article Article) Article {
 }
 
 type Person struct {
-	fullName string
-	role     string
+	givenName   string
+	familyName  string
+	description string
 }
 
 ////////// WIP call schedules
@@ -139,7 +150,7 @@ func getSchedules(article Article) Article {
 	//id "0" = radiozurnal
 	//id "3" = plus
 
-	id := "3"
+	id := "plus.json"
 	url := "https://api.rozhlas.cz/data/v2"
 	url = fmt.Sprintf("%s/%s/%s/%s/%s/%s", url, "schedule/day", year, month, day, id)
 
@@ -166,8 +177,15 @@ func getSchedules(article Article) Article {
 		fmt.Printf("client: could not read response body: %s\n", err)
 		os.Exit(1)
 	}
-	fmt.Printf("client: response body: %s\n", resBody)
-	fmt.Println(resBody)
+
+	//fmt.Printf("client: response body: %s\n", resBody)
+
+	var shows []*Show
+	err = json.UnmarshallJSON(resBody, &shows)
+	if err != nil {
+		fmt.Println("error parsing response")
+	}
+	fmt.Println(json.MarshallIndent(shows, "", " "))
 
 	return article
 }
