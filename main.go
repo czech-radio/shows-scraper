@@ -99,7 +99,7 @@ func deriveGuests(article Article) Article {
 	url := "https://api.geneea.com/v3/analysis/?T=CRo-transcripts"
 	apiKey := fmt.Sprintf("%s", os.Getenv("GENEEA_API_KEY"))
 
-	body := []byte(fmt.Sprintf(`{"text":"s"}`, article.Description))
+	body := []byte(fmt.Sprintf(`{"text":"%s"}`, article.Description))
 
 	r, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
 	if err != nil {
@@ -120,17 +120,48 @@ func deriveGuests(article Article) Article {
 
 	defer res.Body.Close()
 
-	var geneea_reply map[string]interface{}
+	/*
+		var geneea_reply map[string]interface{}
 
-	derr := json.NewDecoder(res.Body).Decode(&geneea_reply)
-	if derr != nil {
-		panic(derr)
+		derr := json.NewDecoder(res.Body).Decode(&geneea_reply)
+		if derr != nil {
+			panic(derr)
+		}
+
+		fmt.Println(geneea_reply)
+	*/
+
+	resBody, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		fmt.Printf("client: could not read response body: %s\n", err)
+		os.Exit(1)
 	}
 
-	fmt.Println(geneea_reply)
+	/*
+		unescaped, err := UnescapeUnicodeCharactersInJSON(resBody)
+		if err != nil {
+			fmt.Printf("there was an error unescaping json: %s\n", err.Error())
+		}*/
+	data := gjson.Get(string(resBody), "entities")
 
-	//article.Guests = fmt.Sprintf("%s", string(b))
+	data.ForEach(func(key, value gjson.Result) bool {
+
+		attrs := gjson.GetMany(value.String(), "stdForm", "type")
+
+		if attrs != nil {
+			println(attrs[1].String())
+
+			if attrs[1].String() == "person" && attrs[0].String() != article.Moderator {
+				article.Guests = fmt.Sprintf("%s;%s", attrs[0].String(), article.Guests)
+				//article.Moderator = attrs[4].String()
+				//fmt.Printf("%s, %s, %s, %s, %s\n",article.Title,article.Date,article.Time,article.Description,article.Guests)
+			}
+		}
+		return true
+	})
+
 	return article
+
 }
 
 type Person struct {
