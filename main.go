@@ -99,7 +99,7 @@ func deriveGuests(article Article) Article {
 	url := "https://api.geneea.com/v3/analysis/?T=CRo-transcripts"
 	apiKey := fmt.Sprintf("%s", os.Getenv("GENEEA_API_KEY"))
 
-	body := []byte(fmt.Sprintf(`{"text":"%s"}`, article.Description))
+	body := []byte(fmt.Sprintf(`{"text":"%s"}`, article.Guests))
 
 	r, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
 	if err != nil {
@@ -154,8 +154,10 @@ func deriveGuests(article Article) Article {
 				if article.Moderator == `[]` {
 					article.Moderator = fmt.Sprintf(`["%s"]`, attrs[0].String())
 				}*/
-			if attrs[1].String() == "person" && article.Moderator != fmt.Sprintf(`["%s"]`, attrs[0].String()) {
+			if attrs[1].String() == "person" && len(strings.Split(attrs[0].String(), " ")) <= 3 {
 				article.Guests = fmt.Sprintf("%s;%s", attrs[0].String(), article.Guests)
+				//article.Guests = attrs[0].String()
+
 				//article.Moderator = attrs[4].String()
 				//fmt.Printf("%s, %s, %s, %s, %s\n",article.Title,article.Date,article.Time,article.Description,article.Guests)
 			}
@@ -183,6 +185,7 @@ func UnescapeUnicodeCharactersInJSON(jsonRaw json.RawMessage) (json.RawMessage, 
 	return []byte(str), nil
 }
 
+// nevraci stejne vysledky jako python skipt
 func getSchedules(article Article, stationId string) Article {
 
 	split := strings.Split(article.Date, "-")
@@ -349,10 +352,21 @@ func main() {
 	today := fmt.Sprintf("%s", currentTime.Format("2006-01-02"))
 
 	// TODO: get persons from moderator fields
-	for index, article := range articles {
-		articles[index] = getSchedules(article, "radiozurnal")
-		articles[index] = getSchedules(article, "plus")
+	/*
+		for index, article := range articles {
+			articles[index] = getSchedules(article, "radiozurnal")
+			articles[index] = getSchedules(article, "plus")
+		}
+	*/
+
+	clearTmp("/tmp/dates.txt")
+	for _, article := range articles {
+		writeFile("/tmp/dates.txt", fmt.Sprintf("%s\n", article.Date))
 	}
+	runScript("./getSchedule.sh")
+	runScript("./filterPorady.sh")
+
+	articles = readCsvFields(fmt.Sprintf("%s_porady_schedule.tsv", today), articles)
 
 	// TODO: call Geneea to mod description here
 	for index, article := range articles {

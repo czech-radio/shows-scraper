@@ -1,7 +1,7 @@
 #!/bin/bash
-DATE=`date +%Y-%m-%d`
-FILENAME=${DATE}_publicistika.tsv
+DATE=$(date +%Y-%m-%d)
+FILENAME="$DATE"_publicistika.tsv
 
-cp ${FILENAME} /root/irozhlas-scraper-geneea-output/publicistika/
+cp "$FILENAME" /root/irozhlas-scraper-geneea-output/publicistika/
 rm *.csv
 rm *.tsv

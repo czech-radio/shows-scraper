@@ -1,8 +1,7 @@
 #!/bin/bash
 #
 
-DATE=$1
-PORAD="$2"
+DATE="$1"
 
 
 activate(){
@@ -14,7 +13,7 @@ activate(){
 }
 
 getSchedule() {
- cro.schedule --period D --date $1 --stations plus,radiozurnal --output ..
+ cro.schedule --period D --date "$1" --stations plus,radiozurnal --output ..
 }
 
 deactivate(){
@@ -24,7 +23,7 @@ deactivate(){
 activate || exit 1
 
 for i in `cat /tmp/dates.txt | sort -n -r |  uniq`; do
-  getSchedule $i || exit 1
+  getSchedule "$i" || exit 1
 done
 
 deactivate || exit 1

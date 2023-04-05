@@ -1,8 +1,7 @@
 #!/bin/bash
 #
 
-DATE=$1
-PORAD="$2"
+DATE="$1"
 
 . ~/.env
 
@@ -26,7 +25,7 @@ deactivate(){
 activate || exit 1
 
 while read i; do
-  echo $i | awk -F':' '{print $2}' > /tmp/input.txt
+  echo "$i" | awk -F':' '{print $2}' > /tmp/input.txt
   getGeneea "/tmp/input.txt" || exit 1
 done < /tmp/geneea_inputs.txt
 
