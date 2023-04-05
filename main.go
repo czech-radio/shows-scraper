@@ -149,9 +149,12 @@ func deriveGuests(article Article) Article {
 		attrs := gjson.GetMany(value.String(), "stdForm", "type")
 
 		if attrs != nil {
-			println(attrs[1].String())
-
-			if attrs[1].String() == "person" && attrs[0].String() != article.Moderator {
+			//println(attrs[1].String())
+			/*
+				if article.Moderator == `[]` {
+					article.Moderator = fmt.Sprintf(`["%s"]`, attrs[0].String())
+				}*/
+			if attrs[1].String() == "person" && article.Moderator != fmt.Sprintf(`["%s"]`, attrs[0].String()) {
 				article.Guests = fmt.Sprintf("%s;%s", attrs[0].String(), article.Guests)
 				//article.Moderator = attrs[4].String()
 				//fmt.Printf("%s, %s, %s, %s, %s\n",article.Title,article.Date,article.Time,article.Description,article.Guests)
@@ -180,12 +183,12 @@ func UnescapeUnicodeCharactersInJSON(jsonRaw json.RawMessage) (json.RawMessage, 
 	return []byte(str), nil
 }
 
-func getSchedules(article Article) Article {
+func getSchedules(article Article, stationId string) Article {
 
 	split := strings.Split(article.Date, "-")
 	year, month, day := split[0], split[1], split[2]
 
-	id := "plus.json"
+	id := fmt.Sprintf("%s.json", stationId)
 	url := "https://api.rozhlas.cz/data/v2"
 	url = fmt.Sprintf("%s/%s/%s/%s/%s/%s", url, "schedule/day", year, month, day, id)
 
@@ -220,10 +223,18 @@ func getSchedules(article Article) Article {
 	data.ForEach(func(key, value gjson.Result) bool {
 
 		attrs := gjson.GetMany(value.String(), "title", "since", "description", "repetition", "persons.#.name")
-		if attrs[0].String() == article.Show {
-			article.Time = strings.Split(attrs[1].String(), "T")[1]
-			article.Description = attrs[2].String()
-			article.Moderator = attrs[4].String()
+		if attrs[0].String() == article.Show && attrs[2].String() == "false" {
+			if attrs[1].String() != "" {
+				article.Time = strings.Split(attrs[1].String(), "T")[1]
+			}
+
+			if attrs[2].String() != "" {
+				article.Description = attrs[2].String()
+			}
+
+			if attrs[4].String() != "[]" {
+				article.Moderator = fmt.Sprintf("%s;%s", attrs[4].String(), article.Moderator)
+			}
 			//fmt.Printf("%s, %s, %s, %s, %s\n",article.Title,article.Date,article.Time,article.Description,article.Guests)
 		}
 		return true
@@ -339,7 +350,8 @@ func main() {
 
 	// TODO: get persons from moderator fields
 	for index, article := range articles {
-		articles[index] = getSchedules(article)
+		articles[index] = getSchedules(article, "radiozurnal")
+		articles[index] = getSchedules(article, "plus")
 	}
 
 	// TODO: call Geneea to mod description here
