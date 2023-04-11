@@ -7,7 +7,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"time"
 
 	"encoding/csv"
 	"encoding/json"
@@ -300,6 +299,68 @@ func convertDate(input string) string {
 	return fmt.Sprintf("%s-%s-%02d", year, mo, day)
 }
 
+var articles []Article
+
+// Hlavní zprávy - rozhovory, komentáře
+func A(i int) {
+	c := colly.NewCollector()
+	showName = "Hlavní zprávy - rozhovory, komentáře"
+	c.Visit(fmt.Sprintf("https://plus.rozhlas.cz/hlavni-zpravy-rozhovory-a-komentare-5997846?page=%d", i))
+
+	// Find and visit all links
+	c.OnHTML(".b-022__block", func(e *colly.HTMLElement) {
+		nadpis := e.ChildText("h3")
+		if nadpis != "" {
+			datum := convertDate(e.ChildText(".b-022__timestamp"))
+			popis := e.ChildText("p")
+			link := fmt.Sprintf("https://plus.rozhlas.cz%s", e.ChildAttr("h3 a", "href"))
+
+			novyArticle := NewArticle(nadpis, datum, popis, link, AddShow(showName))
+			articles = append(articles, novyArticle)
+
+		}
+	})
+
+	c.OnHTML(".div.factbox", func(e *colly.HTMLElement) {
+		host := e.ChildText("strong")
+		fmt.Println(host)
+	})
+
+	for _, article := range articles {
+		c.Visit(article.Link)
+	}
+
+	//fmt.Println(articles)
+
+}
+
+// Pro a proti
+func B(i int) {
+
+	c := colly.NewCollector()
+	showName = "Pro a proti"
+	c.Visit(fmt.Sprintf("https://plus.rozhlas.cz/pro-a-proti-6482952?page=%d", i))
+
+}
+
+// Dvacet minut Radiožurnálu
+func C(i int) {
+
+	c := colly.NewCollector()
+	showName = "Dvacet minut Radiožurnálu"
+	c.Visit(fmt.Sprintf("https://plus.rozhlas.cz/dvacet-minut-radiozurnalu-5997743?page=%d", i))
+
+}
+
+// Interview Plus
+func D(i int) {
+
+	c := colly.NewCollector()
+	showName = "Interview Plus"
+	c.Visit(fmt.Sprintf("https://plus.rozhlas.cz/interview-plus-6504167?page=%d", i))
+
+}
+
 /////////////////////////////////////////////////////////////////////////
 //////        MAIN  /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////
@@ -309,22 +370,7 @@ func main() {
 	noPages := flag.Int("p", 1, "Number of pages to download.")
 	flag.Parse()
 
-	c := colly.NewCollector()
-	articles := make([]Article, 0)
-
-	// Find and visit all links
-	c.OnHTML(".b-022__block", func(e *colly.HTMLElement) {
-		nadpis := e.ChildText("h3")
-		if nadpis != "" {
-			datum := convertDate(e.ChildText(".b-022__timestamp"))
-			popis := e.ChildText("p")
-			link := fmt.Sprintf("https://radiozurnal.rozhlas.cz%s", e.ChildAttr("h3 a", "href"))
-
-			novyArticle := NewArticle(nadpis, datum, popis, link, AddShow(showName))
-			articles = append(articles, novyArticle)
-
-		}
-	})
+	articles = make([]Article, 0)
 
 	/*
 			c.OnRequest(func(r *colly.Request) {
@@ -333,23 +379,16 @@ func main() {
 	*/
 
 	for i := 0; i < *noPages; i++ {
-		showName = "Hlavní zprávy - rozhovory, komentáře"
-		c.Visit(fmt.Sprintf("https://plus.rozhlas.cz/hlavni-zpravy-rozhovory-a-komentare-5997846?page=%d", i))
-
-		showName = "Pro a proti"
-		c.Visit(fmt.Sprintf("https://plus.rozhlas.cz/pro-a-proti-6482952?page=%d", i))
-
-		showName = "Dvacet minut Radiožurnálu"
-		c.Visit(fmt.Sprintf("https://plus.rozhlas.cz/dvacet-minut-radiozurnalu-5997743?page=%d", i))
-
-		showName = "Interview Plus"
-		c.Visit(fmt.Sprintf("https://plus.rozhlas.cz/interview-plus-6504167?page=%d", i))
+		A(i)
+		B(i)
+		C(i)
+		D(i)
 	}
 
 	sortByDate(articles)
-
-	currentTime := time.Now()
-	today := fmt.Sprintf("%s", currentTime.Format("2006-01-02"))
+	fmt.Println(articles)
+	//currentTime := time.Now()
+	//today := fmt.Sprintf("%s", currentTime.Format("2006-01-02"))
 
 	// TODO: get persons from moderator fields
 	/*
@@ -358,24 +397,25 @@ func main() {
 			articles[index] = getSchedules(article, "plus")
 		}
 	*/
+	/*
 
-	clearTmp("/tmp/dates.txt")
-	for _, article := range articles {
-		writeFile("/tmp/dates.txt", fmt.Sprintf("%s\n", article.Date))
-	}
-	runScript("./getSchedule.sh")
-	runScript("./filterPorady.sh")
+		clearTmp("/tmp/dates.txt")
+		for _, article := range articles {
+			writeFile("/tmp/dates.txt", fmt.Sprintf("%s\n", article.Date))
+		}
+		runScript("./getSchedule.sh")
+		runScript("./filterPorady.sh")
 
-	articles = readCsvFields(fmt.Sprintf("%s_porady_schedule.tsv", today), articles)
+		articles = readCsvFields(fmt.Sprintf("%s_porady_schedule.tsv", today), articles)
 
-	// TODO: call Geneea to mod description here
-	for index, article := range articles {
-		articles[index] = deriveGuests(article)
-	}
+		// TODO: call Geneea to mod description here
+		for index, article := range articles {
+			articles[index] = deriveGuests(article)
+		}
 
-	// write the complete output
-	writeCSV(fmt.Sprintf("%s_publicistika.tsv", today), articles)
-
+		// write the complete output
+		writeCSV(fmt.Sprintf("%s_publicistika.tsv", today), articles)
+	*/
 }
 
 func runScript(command string) {
