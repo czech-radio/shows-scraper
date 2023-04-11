@@ -304,8 +304,6 @@ var articles []Article
 // Hlavní zprávy - rozhovory, komentáře
 func A(i int) {
 	c := colly.NewCollector()
-	showName = "Hlavní zprávy - rozhovory, komentáře"
-	c.Visit(fmt.Sprintf("https://plus.rozhlas.cz/hlavni-zpravy-rozhovory-a-komentare-5997846?page=%d", i))
 
 	// Find and visit all links
 	c.OnHTML(".b-022__block", func(e *colly.HTMLElement) {
@@ -325,6 +323,9 @@ func A(i int) {
 		host := e.ChildText("strong")
 		fmt.Println(host)
 	})
+
+	showName = "Hlavní zprávy - rozhovory, komentáře"
+	c.Visit(fmt.Sprintf("https://plus.rozhlas.cz/hlavni-zpravy-rozhovory-a-komentare-5997846?page=%d", i))
 
 	for _, article := range articles {
 		c.Visit(article.Link)
