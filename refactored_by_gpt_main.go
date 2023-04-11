@@ -3,81 +3,48 @@ package main
 import (
 	"fmt"
 	"log"
-	"os"
-	"time"
+	"net/http"
 
-	"github.com/gocolly/colly/v2"
+	"github.com/PuerkitoBio/goquery"
 )
 
-type program struct {
-	name   string
-	epName string
-	time   string
-}
-
 func main() {
-	// Define the desired time period
-	startDate := time.Date(2021, 9, 1, 0, 0, 0, 0, time.Local)
-	endDate := time.Date(2021, 9, 30, 23, 59, 59, 0, time.Local)
-
-	// Create a map to store the programs
-	programs := make(map[string][]program)
-
-	// Create a new collector
-	c := colly.NewCollector(
-		colly.AllowedDomains("www.irozhlas.cz"),
-		colly.CacheDir("./cache"),
-	)
-
-	// Set up error logging
-	logFile, err := os.Create("errors.log")
-	if err != nil {
-		log.Fatal(err)
+	links := []string{
+		"https://www.radio.cz/cz/rubrika/zpravy",
+		"https://www.radio.cz/cz/rubrika/udalosti",
+		"https://www.radio.cz/cz/rubrika/zahranici",
 	}
-	defer logFile.Close()
-	log.SetOutput(logFile)
 
-	// Find all program links on the given page
-	c.OnHTML(".program-items__link", func(e *colly.HTMLElement) {
-		link := e.Attr("href")
-		// Visit the program page
-		c.Visit(e.Request.AbsoluteURL(link))
-	})
-
-	// Find the details of the programs on the given page
-	c.OnHTML(".broadcasts__list__item", func(e *colly.HTMLElement) {
-		// Extract the program name and episode name
-		programName := e.ChildText(".broadcasts__list__item__header__title")
-		epName := e.ChildText(".broadcasts__list__item__header__sub-title")
-
-		// Extract the broadcast time
-		broadcastTime, err := time.Parse("2.1.2006 15:04", e.ChildText(".broadcasts__list__item__header__time"))
+	for _, link := range links {
+		fmt.Printf("Downloading articles from %s\n", link)
+		resp, err := http.Get(link)
 		if err != nil {
-			log.Println("Error parsing time:", err)
-			return
+			log.Fatal(err)
+		}
+		defer resp.Body.Close()
+
+		doc, err := goquery.NewDocumentFromReader(resp.Body)
+		if err != nil {
+			log.Fatal(err)
 		}
 
-		// Check if the broadcast time is within the desired time period
-		if broadcastTime.Before(startDate) || broadcastTime.After(endDate) {
-			return
-		}
+		// Find all article links on the page and download them
+		doc.Find(".list-news a").Each(func(i int, s *goquery.Selection) {
+			href, ok := s.Attr("href")
+			if !ok {
+				return
+			}
 
-		// Add the program to the map
-		p := program{name: programName, epName: epName, time: broadcastTime.Format("2006-01-02 15:04:05")}
-		programs[programName] = append(programs[programName], p)
+			fmt.Printf("Downloading article from %s\n", href)
+			resp, err := http.Get(href)
+			if err != nil {
+				log.Fatal(err)
+			}
+			defer resp.Body.Close()
 
-		// Print the program details
-		fmt.Printf("Program: %s\nEpisode: %s\nTime: %s\n\n", programName, epName, broadcastTime.Format("2006-01-02 15:04:05"))
-	})
-
-	// Visit the main page of the publicistika section
-	c.Visit("https://www.irozhlas.cz/publicistika")
-
-	// Print the programs and their broadcasts
-	for programName, programList := range programs {
-		fmt.Printf("Program: %s\n", programName)
-		for _, p := range programList {
-			fmt.Printf("Episode: %s\nTime: %s\n\n", p.epName, p.time)
-		}
+			// TODO: process the article content here
+		})
 	}
+
+	fmt.Println("All articles downloaded successfully")
 }
