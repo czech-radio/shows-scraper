@@ -329,8 +329,13 @@ func A(articles []Article, i int) []Article {
 	c = colly.NewCollector()
 
 	cnt := 0
-	var moderator, guests, reply string
+	var moderator, guests, reply, teaser string
 	var persons []Person
+
+	c.OnHTML(".field.field-perex", func(e *colly.HTMLElement) {
+		teaser = fmt.Sprintf(e.ChildText("p"))
+	})
+
 	c.OnHTML(".factbox", func(e *colly.HTMLElement) {
 		reply = fmt.Sprintf(e.ChildText("p"))
 		reply2 := fmt.Sprintf(e.ChildText("li") + " ")
@@ -366,6 +371,7 @@ func A(articles []Article, i int) []Article {
 		c.Visit(article.Link)
 		articles[i].Moderator = moderator
 		articles[i].Guests = persons
+		articles[i].Teaser = teaser
 
 	}
 
@@ -391,7 +397,7 @@ func B(articles []Article, i int) []Article {
 		if nadpis != "" {
 			datum := convertDate(e.ChildText(".b-022__timestamp"))
 			popis := e.ChildText("p")
-			link := fmt.Sprintf("https://plus.rozhlas.cz%s", e.ChildAttr("h3 a", "href"))
+			link := fmt.Sprintf("https://radiozurnal.rozhlas.cz%s", e.ChildAttr("h3 a", "href"))
 
 			novyArticle := NewArticle(nadpis, datum, popis, link, AddShow(showName))
 			articles = append(articles, novyArticle)
@@ -400,7 +406,18 @@ func B(articles []Article, i int) []Article {
 	})
 
 	showName = "Pro a proti"
-	c.Visit(fmt.Sprintf("https://plus.rozhlas.cz/pro-a-proti-6482952?page=%d", i))
+	c.Visit(fmt.Sprintf("https://radiozurnal.rozhlas.cz/pro-a-proti-6482952?page=%d", i))
+
+	clearTmp("/tmp/dates.txt")
+	for _, article := range articles {
+		writeFile("/tmp/dates.txt", fmt.Sprintf("%s\n", article.Date))
+	}
+	runScript("./getSchedule.sh")
+
+	currentTime := time.Now()
+	today := fmt.Sprintf("%s", currentTime.Format("2006-01-02"))
+
+	articles = readCsvFields(fmt.Sprintf("%s_porady_schedule.tsv", today), articles)
 
 	return articles
 }
@@ -435,8 +452,8 @@ func main() {
 	articles = make([]Article, 0)
 
 	for i := 0; i < *noPages; i++ {
-		articles = A(articles, i)
-		//articles = B(articles, i)
+		//articles = A(articles, i)
+		articles = B(articles, i)
 		//C(i)
 		//D(i)
 	}
@@ -566,8 +583,8 @@ func readCsvFields(filePath string, articles []Article) []Article {
 		for _, row := range records {
 			if article.Date == row[0] && article.Show == row[2] {
 				articles[i].Time = row[1]
-				//articles[i].Moderator = row[3]
-				// articles[i].Guests = row[4]
+				articles[i].Moderator = row[3]
+				//articles[i].Guests = row[4]
 			}
 		}
 	}
