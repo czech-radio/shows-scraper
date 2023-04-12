@@ -328,16 +328,23 @@ func A(articles []Article, i int) []Article {
 
 	c = colly.NewCollector()
 
-	var cnt int
+	cnt := 0
 	var moderator, guests, reply string
 	c.OnHTML(".factbox", func(e *colly.HTMLElement) {
-		reply = fmt.Sprintf(e.ChildText("strong"))
+		reply = fmt.Sprintf(e.ChildText("p"))
+		reply2 := fmt.Sprintf(e.ChildText("li") + " ")
 
-		split := strings.Split(reply, ":")
-		moderator = split[0]
+		inline := fmt.Sprintf("%s %s", reply, reply2)
+
+		split := strings.Split(inline, ":")
+		moderator = strings.ReplaceAll(split[0], "Hosty", "")
+		moderator = strings.ReplaceAll(moderator, "Hosté", "")
+		moderator = strings.ReplaceAll(moderator, "jsou", "")
+		moderator = strings.ReplaceAll(moderator, "Byli", "")
+
 		guests = split[1]
+
 		cnt++
-		fmt.Println(fmt.Sprintf("Moderator:%s Guests:%s", moderator, guests))
 	})
 
 	for i, article := range articles {
@@ -408,15 +415,9 @@ func main() {
 
 	articles = make([]Article, 0)
 
-	/*
-			c.OnRequest(func(r *colly.Request) {
-		          //fmt.Println("Visiting", r.URL)
-			})
-	*/
-
 	for i := 0; i < *noPages; i++ {
 		articles = A(articles, i)
-		articles = B(articles, i)
+		//articles = B(articles, i)
 		//C(i)
 		//D(i)
 	}
@@ -434,16 +435,16 @@ func main() {
 			articles[index] = getSchedules(article, "plus")
 		}
 	*/
+	/*
+		clearTmp("/tmp/dates.txt")
+		for _, article := range articles {
+			writeFile("/tmp/dates.txt", fmt.Sprintf("%s\n", article.Date))
+		}
+		runScript("./getSchedule.sh")
+		runScript("./filterPorady.sh")
 
-	clearTmp("/tmp/dates.txt")
-	for _, article := range articles {
-		writeFile("/tmp/dates.txt", fmt.Sprintf("%s\n", article.Date))
-	}
-	runScript("./getSchedule.sh")
-	runScript("./filterPorady.sh")
-
-	articles = readCsvFields(fmt.Sprintf("%s_porady_schedule.tsv", today), articles)
-
+		articles = readCsvFields(fmt.Sprintf("%s_porady_schedule.tsv", today), articles)
+	*/
 	// TODO: call Geneea to mod description here
 	//	for index, article := range articles {
 	//		articles[index] = deriveGuests(article)
