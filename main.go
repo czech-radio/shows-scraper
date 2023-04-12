@@ -230,6 +230,7 @@ func deriveGuests(article Article) Article {
 				persons = append(persons, Person{Jmeno: name, Prijmeni: surname, Funkce: ""})
 
 				article.Guests = persons
+
 				//article.Guests = attrs[0].String()
 
 				//article.Moderator = attrs[4].String()
@@ -345,10 +346,10 @@ var showName string
 
 func convertDate(input string) string {
 	s := strings.Split(input, " ")
-	log.Println(s)
+	log.Println(input)
 	day, err := strconv.Atoi(strings.Split(s[0], ".")[0])
 	if err != nil {
-		log.Println("Couldn't get day from date")
+		log.Println(fmt.Sprintf("Couldn't get day from date: %s", err.Error()))
 		return input
 
 	}
@@ -497,28 +498,6 @@ func B(articles []Article, i int) []Article {
 
 		articles[i].Teaser = strings.Join(sentences[1:len(sentences)], ".")
 
-		/*
-			// Find senteces with quote marks vv
-			// Character to search for
-			character := `„`
-
-			// Split the string into sentences
-			sentences := strings.Split(articles[i].Teaser, ".")
-
-			var tmp string
-			// Loop through each sentence
-
-			for _, sentence := range sentences {
-				// Check if the sentence contains the character
-				if strings.Contains(sentence, character) {
-					// Print the sentence
-					tmp = fmt.Sprintf("%s %s", tmp, strings.TrimSpace(sentence)+".")
-				}
-			}
-
-			articles[i].Teaser = tmp
-		*/
-
 	}
 
 	// call Geneea to fix moderators
@@ -546,11 +525,61 @@ func B(articles []Article, i int) []Article {
 }
 
 // Dvacet minut Radiožurnálu
-func C(articles []Article, i int) {
+func C(articles []Article, i int) []Article {
 
 	c := colly.NewCollector()
+
+	// Find and visit all links
+	c.OnHTML(".b-022__block", func(e *colly.HTMLElement) {
+		nadpis := e.ChildText("h3")
+		if nadpis != "" {
+			popis := e.ChildText("p")
+
+			datum := convertDate(e.ChildText(".b-022__timestamp"))
+			link := fmt.Sprintf("https://radiozurnal.rozhlas.cz%s", e.ChildAttr("h3 a", "href"))
+
+			novyArticle := NewArticle(nadpis, datum, popis, link, AddShow(showName))
+			articles = append(articles, novyArticle)
+		}
+	})
+
 	showName = "Dvacet minut Radiožurnálu"
-	c.Visit(fmt.Sprintf("https://plus.rozhlas.cz/dvacet-minut-radiozurnalu-5997743?page=%d", i))
+	c.Visit(fmt.Sprintf("https://radiozurnal.rozhlas.cz/dvacet-minut-radiozurnalu-5997743?page=%d", i))
+
+	c = colly.NewCollector()
+
+	var teaser string
+	c.OnHTML(".field.field-perex", func(e *colly.HTMLElement) {
+		teaser = fmt.Sprintf(e.ChildText("p"))
+	})
+
+	for i, article := range articles {
+		c.Visit(article.Link)
+		articles[i].Teaser = teaser
+	}
+
+	clearTmp("/tmp/dates.txt")
+	for _, article := range articles {
+		writeFile("/tmp/dates.txt", fmt.Sprintf("%s\n", article.Date))
+	}
+	runScript("./getSchedule.sh")
+
+	currentTime := time.Now()
+	today := fmt.Sprintf("%s", currentTime.Format("2006-01-02"))
+
+	articles = readCsvFields(fmt.Sprintf("%s_porady_schedule.tsv", today), articles)
+
+	// call Geneea to fix moderators
+	for index, article := range articles {
+		articles[index] = deriveModerator(article)
+	}
+
+	// call Geneea to fix guests
+	for index, article := range articles {
+		articles[index] = deriveGuests(article)
+	}
+
+	return articles
 
 }
 
@@ -572,18 +601,20 @@ func main() {
 	noPages := flag.Int("p", 1, "Number of pages to download.")
 	flag.Parse()
 
-	//articles := make([]Article, 0)
-	articlesA := make([]Article, 0)
-	articlesB := make([]Article, 0)
+	//articlesA := make([]Article, 0)
+	//articlesB := make([]Article, 0)
+	articlesC := make([]Article, 0)
 
 	for i := 0; i < *noPages; i++ {
-		articlesA = A(articlesA, i)
-		articlesB = B(articlesB, i)
-		//C(i)
+		//articlesA = A(articlesA, i)
+		//articlesB = B(articlesB, i)
+		articlesC = C(articlesC, i)
 		//D(i)
 	}
 
-	articles := append(articlesA, articlesB...)
+	//articles := append(articlesA, articlesB...)
+	articles := make([]Article, 0)
+	articles = append(articles, articlesC...)
 
 	sortByDate(articles)
 	fmt.Println(articles)
