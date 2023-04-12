@@ -569,14 +569,23 @@ func C(articles []Article, i int) []Article {
 
 	articles = readCsvFields(fmt.Sprintf("%s_porady_schedule.tsv", today), articles)
 
-	// call Geneea to fix moderators
-	for index, article := range articles {
-		articles[index] = deriveModerator(article)
-	}
+	/*
+		// call Geneea to fix moderators
+		for index, article := range articles {
+			articles[index] = deriveModerator(article)
+		}
+	*/
 
 	// call Geneea to fix guests
 	for index, article := range articles {
 		articles[index] = deriveGuests(article)
+
+		if len(articles[index].Guests) >= 1 {
+			last := articles[index].Guests[len(articles[index].Guests)-1]
+			fmt.Println(last)
+			articles[index].Guests = []Person{{Jmeno: last.Jmeno, Prijmeni: last.Prijmeni, Funkce: last.Funkce}}
+		}
+
 	}
 
 	return articles
@@ -601,19 +610,21 @@ func main() {
 	noPages := flag.Int("p", 1, "Number of pages to download.")
 	flag.Parse()
 
-	//articlesA := make([]Article, 0)
-	//articlesB := make([]Article, 0)
+	articlesA := make([]Article, 0)
+	articlesB := make([]Article, 0)
 	articlesC := make([]Article, 0)
 
 	for i := 0; i < *noPages; i++ {
-		//articlesA = A(articlesA, i)
-		//articlesB = B(articlesB, i)
+		articlesA = A(articlesA, i)
+		articlesB = B(articlesB, i)
 		articlesC = C(articlesC, i)
 		//D(i)
 	}
 
 	//articles := append(articlesA, articlesB...)
 	articles := make([]Article, 0)
+	articles = append(articles, articlesA...)
+	articles = append(articles, articlesB...)
 	articles = append(articles, articlesC...)
 
 	sortByDate(articles)
