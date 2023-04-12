@@ -175,6 +175,74 @@ func deriveModerator(article Article) Article {
 
 }
 
+func deriveGuests(article Article) Article {
+
+	url := "https://api.geneea.com/v3/analysis/?T=CRo-transcripts"
+	apiKey := fmt.Sprintf("%s", os.Getenv("GENEEA_API_KEY"))
+
+	body := []byte(fmt.Sprintf(`{"text":"%s"}`, article.Teaser))
+
+	r, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
+	if err != nil {
+		panic(err)
+	}
+
+	r.Header = http.Header{
+		"Host":          {url},
+		"Content-Type":  {"application/json"},
+		"Authorization": {fmt.Sprintf("user_key %s", apiKey)},
+	}
+
+	client := &http.Client{}
+	res, err := client.Do(r)
+	if err != nil {
+		panic(err)
+	}
+
+	defer res.Body.Close()
+
+	resBody, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		fmt.Printf("client: could not read response body: %s\n", err)
+		os.Exit(1)
+	}
+
+	/*
+		unescaped, err := UnescapeUnicodeCharactersInJSON(resBody)
+		if err != nil {
+			fmt.Printf("there was an error unescaping json: %s\n", err.Error())
+		}*/
+	data := gjson.Get(string(resBody), "entities")
+
+	persons := make([]Person, 0)
+
+	data.ForEach(func(key, value gjson.Result) bool {
+
+		attrs := gjson.GetMany(value.String(), "stdForm", "type")
+
+		if attrs != nil {
+			//println(attrs[1].String())
+
+			if attrs[1].String() == "person" && len(strings.Split(attrs[0].String(), " ")) <= 3 {
+				guests := strings.Split(attrs[0].String(), " ")
+				name := guests[0]
+				surname := guests[1]
+				persons = append(persons, Person{Jmeno: name, Prijmeni: surname, Funkce: ""})
+
+				article.Guests = persons
+				//article.Guests = attrs[0].String()
+
+				//article.Moderator = attrs[4].String()
+				//fmt.Printf("%s, %s, %s, %s, %s\n",article.Title,article.Date,article.Time,article.Description,article.Guests)
+			}
+		}
+		return true
+	})
+
+	return article
+
+}
+
 ////////// WIP call schedules
 
 func UnescapeUnicodeCharactersInJSON(jsonRaw json.RawMessage) (json.RawMessage, error) {
@@ -408,6 +476,61 @@ func B(articles []Article, i int) []Article {
 	showName = "Pro a proti"
 	c.Visit(fmt.Sprintf("https://radiozurnal.rozhlas.cz/pro-a-proti-6482952?page=%d", i))
 
+	// visit links
+	c = colly.NewCollector()
+
+	var teaser string
+	c.OnHTML(".field.field-perex", func(e *colly.HTMLElement) {
+		teaser = fmt.Sprintf(e.ChildText("p"))
+	})
+
+	for i, article := range articles {
+		c.Visit(article.Link)
+
+		// Define the separators as a function
+		separators := func(c rune) bool {
+			return c == '?' || c == '.' || c == ';'
+		}
+
+		// Split the string by the separators
+		sentences := strings.FieldsFunc(teaser, separators)
+
+		articles[i].Teaser = strings.Join(sentences[1:len(sentences)], ".")
+
+		/*
+			// Find senteces with quote marks vv
+			// Character to search for
+			character := `„`
+
+			// Split the string into sentences
+			sentences := strings.Split(articles[i].Teaser, ".")
+
+			var tmp string
+			// Loop through each sentence
+
+			for _, sentence := range sentences {
+				// Check if the sentence contains the character
+				if strings.Contains(sentence, character) {
+					// Print the sentence
+					tmp = fmt.Sprintf("%s %s", tmp, strings.TrimSpace(sentence)+".")
+				}
+			}
+
+			articles[i].Teaser = tmp
+		*/
+
+	}
+
+	// call Geneea to fix moderators
+	for index, article := range articles {
+		articles[index] = deriveModerator(article)
+	}
+
+	// call Geneea to fix guests
+	for index, article := range articles {
+		articles[index] = deriveGuests(article)
+	}
+
 	clearTmp("/tmp/dates.txt")
 	for _, article := range articles {
 		writeFile("/tmp/dates.txt", fmt.Sprintf("%s\n", article.Date))
@@ -449,14 +572,18 @@ func main() {
 	noPages := flag.Int("p", 1, "Number of pages to download.")
 	flag.Parse()
 
-	articles = make([]Article, 0)
+	//articles := make([]Article, 0)
+	articlesA := make([]Article, 0)
+	articlesB := make([]Article, 0)
 
 	for i := 0; i < *noPages; i++ {
-		//articles = A(articles, i)
-		articles = B(articles, i)
+		articlesA = A(articlesA, i)
+		articlesB = B(articlesB, i)
 		//C(i)
 		//D(i)
 	}
+
+	articles := append(articlesA, articlesB...)
 
 	sortByDate(articles)
 	fmt.Println(articles)
