@@ -7,6 +7,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"encoding/csv"
 	"encoding/json"
@@ -276,9 +277,12 @@ var showName string
 
 func convertDate(input string) string {
 	s := strings.Split(input, " ")
+	log.Println(s)
 	day, err := strconv.Atoi(strings.Split(s[0], ".")[0])
 	if err != nil {
-		log.Fatal("Couldn't get day from date")
+		log.Println("Couldn't get day from date")
+		return input
+
 	}
 	year := fmt.Sprintf("%s", s[2])
 	months := map[string]string{
@@ -302,7 +306,7 @@ func convertDate(input string) string {
 var articles []Article
 
 // Hlavní zprávy - rozhovory, komentáře
-func A(i int) {
+func A(articles []Article, i int) []Article {
 	c := colly.NewCollector()
 
 	// Find and visit all links
@@ -319,33 +323,64 @@ func A(i int) {
 		}
 	})
 
-	c.OnHTML(".div.factbox", func(e *colly.HTMLElement) {
-		host := e.ChildText("strong")
-		fmt.Println(host)
-	})
-
 	showName = "Hlavní zprávy - rozhovory, komentáře"
 	c.Visit(fmt.Sprintf("https://plus.rozhlas.cz/hlavni-zpravy-rozhovory-a-komentare-5997846?page=%d", i))
 
-	for _, article := range articles {
+	c = colly.NewCollector()
+
+	var cnt int
+	var moderator, guests, reply string
+	c.OnHTML(".factbox", func(e *colly.HTMLElement) {
+		reply = fmt.Sprintf(e.ChildText("strong"))
+
+		split := strings.Split(reply, ":")
+		moderator = split[0]
+		guests = split[1]
+		cnt++
+		fmt.Println(fmt.Sprintf("Moderator:%s Guests:%s", moderator, guests))
+	})
+
+	for i, article := range articles {
+
 		c.Visit(article.Link)
+		articles[i].Moderator = moderator
+		articles[i].Guests = guests
+
 	}
 
 	//fmt.Println(articles)
 
+	return articles
+
 }
 
 // Pro a proti
-func B(i int) {
+func B(articles []Article, i int) []Article {
 
 	c := colly.NewCollector()
+
+	// Find and visit all links
+	c.OnHTML(".b-022__block", func(e *colly.HTMLElement) {
+		nadpis := e.ChildText("h3")
+		if nadpis != "" {
+			datum := convertDate(e.ChildText(".b-022__timestamp"))
+			popis := e.ChildText("p")
+			link := fmt.Sprintf("https://plus.rozhlas.cz%s", e.ChildAttr("h3 a", "href"))
+
+			novyArticle := NewArticle(nadpis, datum, popis, link, AddShow(showName))
+			articles = append(articles, novyArticle)
+
+		}
+	})
+
 	showName = "Pro a proti"
 	c.Visit(fmt.Sprintf("https://plus.rozhlas.cz/pro-a-proti-6482952?page=%d", i))
 
+	return articles
 }
 
 // Dvacet minut Radiožurnálu
-func C(i int) {
+func C(articles []Article, i int) {
 
 	c := colly.NewCollector()
 	showName = "Dvacet minut Radiožurnálu"
@@ -380,16 +415,17 @@ func main() {
 	*/
 
 	for i := 0; i < *noPages; i++ {
-		A(i)
-		B(i)
-		C(i)
-		D(i)
+		articles = A(articles, i)
+		articles = B(articles, i)
+		//C(i)
+		//D(i)
 	}
 
 	sortByDate(articles)
 	fmt.Println(articles)
-	//currentTime := time.Now()
-	//today := fmt.Sprintf("%s", currentTime.Format("2006-01-02"))
+
+	currentTime := time.Now()
+	today := fmt.Sprintf("%s", currentTime.Format("2006-01-02"))
 
 	// TODO: get persons from moderator fields
 	/*
@@ -398,25 +434,23 @@ func main() {
 			articles[index] = getSchedules(article, "plus")
 		}
 	*/
-	/*
 
-		clearTmp("/tmp/dates.txt")
-		for _, article := range articles {
-			writeFile("/tmp/dates.txt", fmt.Sprintf("%s\n", article.Date))
-		}
-		runScript("./getSchedule.sh")
-		runScript("./filterPorady.sh")
+	clearTmp("/tmp/dates.txt")
+	for _, article := range articles {
+		writeFile("/tmp/dates.txt", fmt.Sprintf("%s\n", article.Date))
+	}
+	runScript("./getSchedule.sh")
+	runScript("./filterPorady.sh")
 
-		articles = readCsvFields(fmt.Sprintf("%s_porady_schedule.tsv", today), articles)
+	articles = readCsvFields(fmt.Sprintf("%s_porady_schedule.tsv", today), articles)
 
-		// TODO: call Geneea to mod description here
-		for index, article := range articles {
-			articles[index] = deriveGuests(article)
-		}
+	// TODO: call Geneea to mod description here
+	//	for index, article := range articles {
+	//		articles[index] = deriveGuests(article)
+	//	}
 
-		// write the complete output
-		writeCSV(fmt.Sprintf("%s_publicistika.tsv", today), articles)
-	*/
+	// write the complete output
+	writeCSV(fmt.Sprintf("%s_publicistika.tsv", today), articles)
 }
 
 func runScript(command string) {
@@ -497,7 +531,7 @@ func readCsvFields(filePath string, articles []Article) []Article {
 		for _, row := range records {
 			if article.Date == row[0] && article.Show == row[2] {
 				articles[i].Time = row[1]
-				articles[i].Moderator = row[3]
+				//articles[i].Moderator = row[3]
 				articles[i].Guests = row[4]
 			}
 		}
