@@ -11,6 +11,7 @@ import (
 
 	"encoding/csv"
 	"encoding/json"
+	"encoding/xml"
 	"io/ioutil"
 	"log"
 	"os"
@@ -465,7 +466,7 @@ func main() {
 	*/
 
 	// write the complete output
-	writeCSV(fmt.Sprintf("%s_publicistika.tsv", today), articles)
+	writeXML(fmt.Sprintf("%s_publicistika.xml", today), articles)
 }
 
 func runScript(command string) {
@@ -500,6 +501,25 @@ func writeFile(filename string, text string) {
 	if _, err = f.WriteString(text); err != nil {
 		panic(err)
 	}
+}
+
+func writeXML(filename string, articles []Article) {
+
+	xmlData, err := xml.MarshalIndent(articles, "", "  ")
+	if err != nil {
+		fmt.Println("Error marshaling XML:", err)
+		return
+	}
+
+	// Save the XML data to a file
+	err = ioutil.WriteFile(filename, xmlData, 0644)
+	if err != nil {
+		fmt.Println("Error writing XML file:", err)
+		return
+	}
+
+	fmt.Println("XML file saved successfully!")
+
 }
 
 func writeCSV(filename string, articles []Article) {
