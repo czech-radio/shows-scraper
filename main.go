@@ -100,12 +100,12 @@ func (article *Article) PrettyPrint() {
 
 ////////// WIP call geneea
 
-func deriveGuests(article Article) Article {
+func deriveModerator(article Article) Article {
 
 	url := "https://api.geneea.com/v3/analysis/?T=CRo-transcripts"
 	apiKey := fmt.Sprintf("%s", os.Getenv("GENEEA_API_KEY"))
 
-	body := []byte(fmt.Sprintf(`{"text":"%s"}`, article.Guests))
+	body := []byte(fmt.Sprintf(`{"text":"%s"}`, article.Moderator))
 
 	r, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
 	if err != nil {
@@ -156,17 +156,16 @@ func deriveGuests(article Article) Article {
 
 		if attrs != nil {
 			//println(attrs[1].String())
-			/*
-				if article.Moderator == `[]` {
-					article.Moderator = fmt.Sprintf(`["%s"]`, attrs[0].String())
-				}*/
-			if attrs[1].String() == "person" && len(strings.Split(attrs[0].String(), " ")) <= 3 {
-				//article.Guests = fmt.Sprintf("%s;%s", attrs[0].String(), article.Guests)
-				//article.Guests = attrs[0].String()
 
-				//article.Moderator = attrs[4].String()
-				//fmt.Printf("%s, %s, %s, %s, %s\n",article.Title,article.Date,article.Time,article.Description,article.Guests)
-			}
+			article.Moderator = fmt.Sprintf("%s", attrs[0].String())
+
+			//if attrs[1].String() == "person" && len(strings.Split(attrs[0].String(), " ")) <= 3 {
+			//article.Guests = fmt.Sprintf("%s;%s", attrs[0].String(), article.Guests)
+			//article.Guests = attrs[0].String()
+
+			//article.Moderator = attrs[4].String()
+			//fmt.Printf("%s, %s, %s, %s, %s\n",article.Title,article.Date,article.Time,article.Description,article.Guests)
+			//}
 		}
 		return true
 	})
@@ -369,6 +368,11 @@ func A(articles []Article, i int) []Article {
 
 	}
 
+	// call Geneea to fix moderators
+	for index, article := range articles {
+		articles[index] = deriveModerator(article)
+	}
+
 	//fmt.Println(articles)
 
 	return articles
@@ -459,10 +463,6 @@ func main() {
 
 		articles = readCsvFields(fmt.Sprintf("%s_porady_schedule.tsv", today), articles)
 	*/
-	// TODO: call Geneea to mod description here
-	//	for index, article := range articles {
-	//		articles[index] = deriveGuests(article)
-	//	}
 
 	// write the complete output
 	writeCSV(fmt.Sprintf("%s_publicistika.tsv", today), articles)
