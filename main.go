@@ -24,6 +24,12 @@ import (
 
 type Option func(c Article) Article
 
+type Person struct {
+	Prijmeni string
+	Jmeno    string
+	Funkce   string
+}
+
 type Article struct {
 	Title       string
 	Date        string
@@ -34,7 +40,7 @@ type Article struct {
 	Show      string
 	Time      string
 	Moderator string
-	Guests    string
+	Guests    []Person
 }
 
 /* not used
@@ -155,7 +161,7 @@ func deriveGuests(article Article) Article {
 					article.Moderator = fmt.Sprintf(`["%s"]`, attrs[0].String())
 				}*/
 			if attrs[1].String() == "person" && len(strings.Split(attrs[0].String(), " ")) <= 3 {
-				article.Guests = fmt.Sprintf("%s;%s", attrs[0].String(), article.Guests)
+				//article.Guests = fmt.Sprintf("%s;%s", attrs[0].String(), article.Guests)
 				//article.Guests = attrs[0].String()
 
 				//article.Moderator = attrs[4].String()
@@ -167,12 +173,6 @@ func deriveGuests(article Article) Article {
 
 	return article
 
-}
-
-type Person struct {
-	givenName   string
-	familyName  string
-	description string
 }
 
 ////////// WIP call schedules
@@ -264,7 +264,7 @@ func (article *Article) AddModerator(moderator string) {
 }
 
 func (article *Article) AddGuests(guests string) {
-	article.Guests = guests
+	//article.Guests = guests
 }
 
 func (article *Article) AddTeaser(teaser string) {
@@ -330,6 +330,7 @@ func A(articles []Article, i int) []Article {
 
 	cnt := 0
 	var moderator, guests, reply string
+	var persons []Person
 	c.OnHTML(".factbox", func(e *colly.HTMLElement) {
 		reply = fmt.Sprintf(e.ChildText("p"))
 		reply2 := fmt.Sprintf(e.ChildText("li") + " ")
@@ -340,9 +341,22 @@ func A(articles []Article, i int) []Article {
 		moderator = strings.ReplaceAll(split[0], "Hosty", "")
 		moderator = strings.ReplaceAll(moderator, "Hosté", "")
 		moderator = strings.ReplaceAll(moderator, "jsou", "")
-		moderator = strings.ReplaceAll(moderator, "Byli", "")
+		moderator = strings.ReplaceAll(moderator, "byli", "")
+		moderator = strings.ReplaceAll(moderator, `"`, "")
+
+		moderator = strings.TrimSpace(moderator)
 
 		guests = split[1]
+		guests = strings.ReplaceAll(guests, `"`, "")
+		guests = strings.TrimSpace(guests)
+		entries := strings.Split(guests, ";")
+
+		persons = make([]Person, 0)
+
+		for _, person := range entries {
+			fields := strings.Fields(person)
+			persons = append(persons, Person{Jmeno: fields[0], Prijmeni: strings.ReplaceAll(fields[1], ",", ""), Funkce: strings.Join(fields[2:len(fields)], " ")})
+		}
 
 		cnt++
 	})
@@ -351,7 +365,7 @@ func A(articles []Article, i int) []Article {
 
 		c.Visit(article.Link)
 		articles[i].Moderator = moderator
-		articles[i].Guests = guests
+		articles[i].Guests = persons
 
 	}
 
@@ -505,7 +519,7 @@ func writeCSV(filename string, articles []Article) {
 	defer w.Flush()
 	var data [][]string
 	for _, article := range articles {
-		row := []string{article.Show, article.Date, article.Time, article.Moderator, article.Guests, article.Title, article.Description, article.Link}
+		row := []string{article.Show, article.Date, article.Time, article.Moderator, fmt.Sprintf("%s, %s, %s;", article.Guests[0].Prijmeni, article.Guests[0].Jmeno, article.Guests[0].Funkce), article.Title, article.Description, article.Link}
 		data = append(data, row)
 	}
 	w.WriteAll(data)
@@ -533,7 +547,7 @@ func readCsvFields(filePath string, articles []Article) []Article {
 			if article.Date == row[0] && article.Show == row[2] {
 				articles[i].Time = row[1]
 				//articles[i].Moderator = row[3]
-				articles[i].Guests = row[4]
+				// articles[i].Guests = row[4]
 			}
 		}
 	}
