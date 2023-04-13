@@ -19,6 +19,7 @@ import (
 
 	"net/http"
 
+	"github.com/360EntSecGroup-Skylar/excelize"
 	"github.com/gocolly/colly/v2"
 	"github.com/tidwall/gjson"
 )
@@ -685,11 +686,10 @@ func main() {
 		articlesD = D(articlesD, i)
 	}
 
-	//articles := append(articlesA, articlesB...)
 	articles := make([]Article, 0)
-	//articles = append(articles, articlesA...)
-	// articles = append(articles, articlesB...)
-	// articles = append(articles, articlesC...)
+	articles = append(articles, articlesA...)
+	articles = append(articles, articlesB...)
+	articles = append(articles, articlesC...)
 	articles = append(articles, articlesD...)
 
 	sortByDate(articles)
@@ -716,8 +716,9 @@ func main() {
 		articles = readCsvFields(fmt.Sprintf("%s_porady_schedule.tsv", today), articles)
 	*/
 
+	runScript("./cleanup.sh")
 	// write the complete output
-	writeXML(fmt.Sprintf("%s_publicistika.xml", today), articles)
+	writeXLS(fmt.Sprintf("%s_publicistika.xls", today), articles)
 }
 
 func runScript(command string) {
@@ -751,6 +752,72 @@ func writeFile(filename string, text string) {
 
 	if _, err = f.WriteString(text); err != nil {
 		panic(err)
+	}
+}
+
+func writeXLS(filename string, articles []Article) {
+
+	f := excelize.NewFile()
+
+	// Create a new sheet in the XLS file.
+	sheetName := "Sheet1"
+	f.NewSheet(sheetName)
+
+	// Define the column headers for the sheet.
+	columns := map[string]string{
+		"A1": "datum",
+		"B1": "čas",
+		"C1": "pořad",
+		"D1": "moderátor",
+		"E1": "příjmení",
+		"F1": "jméno",
+		"G1": "strana",
+		"H1": "popis_funkce",
+		"I1": "funkce",
+		"J1": "popis_téma",
+	}
+
+	// Write the column headers to the sheet.
+	for col, header := range columns {
+		f.SetCellValue(sheetName, col, header)
+	}
+
+	// Write the data from the slice of structs to the sheet.
+	for i, article := range articles {
+		row := i + 2 // Add 2 to skip the header row.
+		f.SetCellValue(sheetName, fmt.Sprintf("A%d", row), article.Date)
+		f.SetCellValue(sheetName, fmt.Sprintf("B%d", row), article.Time)
+		f.SetCellValue(sheetName, fmt.Sprintf("C%d", row), article.Show)
+
+		if article.Moderator != "" {
+			f.SetCellValue(sheetName, fmt.Sprintf("D%d", row), article.Moderator)
+		} else {
+			f.SetCellValue(sheetName, fmt.Sprintf("D%d", row), "")
+		}
+
+		if len(article.Guests) > 0 {
+			f.SetCellValue(sheetName, fmt.Sprintf("E%d", row), article.Guests[0].Prijmeni)
+			f.SetCellValue(sheetName, fmt.Sprintf("F%d", row), article.Guests[0].Jmeno)
+		} else {
+			f.SetCellValue(sheetName, fmt.Sprintf("E%d", row), "n/a (auto)")
+			f.SetCellValue(sheetName, fmt.Sprintf("F%d", row), "n/a (auto)")
+		}
+
+		f.SetCellValue(sheetName, fmt.Sprintf("G%d", row), "n/a (auto)")
+		f.SetCellValue(sheetName, fmt.Sprintf("H%d", row), "n/a (auto)")
+
+		if len(article.Guests) > 0 {
+			f.SetCellValue(sheetName, fmt.Sprintf("I%d", row), article.Guests[0].Funkce)
+		} else {
+			f.SetCellValue(sheetName, fmt.Sprintf("I%d", row), "n/a (auto)")
+
+		}
+		f.SetCellValue(sheetName, fmt.Sprintf("J%d", row), article.Teaser)
+	}
+
+	// Save the XLS file.
+	if err := f.SaveAs(filename); err != nil {
+		fmt.Println(err)
 	}
 }
 
