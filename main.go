@@ -223,7 +223,7 @@ func deriveGuests(article Article) Article {
 		if attrs != nil {
 			//println(attrs[1].String())
 
-			if attrs[1].String() == "person" && len(strings.Split(attrs[0].String(), " ")) <= 3 {
+			if attrs[1].String() == "person" && len(strings.Split(attrs[0].String(), " ")) >= 2 {
 				guests := strings.Split(attrs[0].String(), " ")
 				name := guests[0]
 				surname := guests[1]
@@ -516,6 +516,8 @@ func B(articles []Article, i int) []Article {
 	}
 	runScript("./getSchedule.sh")
 
+	runScript("./filterPorady.sh")
+
 	currentTime := time.Now()
 	today := fmt.Sprintf("%s", currentTime.Format("2006-01-02"))
 
@@ -564,6 +566,8 @@ func C(articles []Article, i int) []Article {
 	}
 	runScript("./getSchedule.sh")
 
+	runScript("./filterPorady.sh")
+
 	currentTime := time.Now()
 	today := fmt.Sprintf("%s", currentTime.Format("2006-01-02"))
 
@@ -593,11 +597,72 @@ func C(articles []Article, i int) []Article {
 }
 
 // Interview Plus
-func D(i int) {
+func D(articles []Article, i int) []Article {
 
 	c := colly.NewCollector()
+
+	// Find and visit all links
+	c.OnHTML(".b-022__block", func(e *colly.HTMLElement) {
+		nadpis := e.ChildText("h3")
+		if nadpis != "" {
+			popis := e.ChildText("p")
+
+			datum := convertDate(e.ChildText(".b-022__timestamp"))
+			link := fmt.Sprintf("https://plus.rozhlas.cz%s", e.ChildAttr("h3 a", "href"))
+
+			novyArticle := NewArticle(nadpis, datum, popis, link, AddShow(showName))
+			articles = append(articles, novyArticle)
+		}
+	})
+
 	showName = "Interview Plus"
 	c.Visit(fmt.Sprintf("https://plus.rozhlas.cz/interview-plus-6504167?page=%d", i))
+
+	c = colly.NewCollector()
+
+	var teaser string
+	c.OnHTML(".field.field-perex", func(e *colly.HTMLElement) {
+		teaser = fmt.Sprintf(e.ChildText("p"))
+	})
+
+	for i, article := range articles {
+		c.Visit(article.Link)
+		articles[i].Teaser = teaser
+	}
+
+	/*
+		clearTmp("/tmp/dates.txt")
+		for _, article := range articles {
+			writeFile("/tmp/dates.txt", fmt.Sprintf("%s\n", article.Date))
+		}
+		runScript("./getSchedule.sh")
+		runScript("./filterPorady.sh")
+		currentTime := time.Now()
+		today := fmt.Sprintf("%s", currentTime.Format("2006-01-02"))
+
+		articles = readCsvFields(fmt.Sprintf("%s_porady_schedule.tsv", today), articles)
+	*/
+
+	/*
+		// call Geneea to fix moderators
+		for index, article := range articles {
+			articles[index] = deriveModerator(article)
+		}
+	*/
+
+	// call Geneea to fix guests
+	for index, article := range articles {
+		articles[index] = deriveGuests(article)
+
+		if len(articles[index].Guests) >= 1 {
+			last := articles[index].Guests[len(articles[index].Guests)-1]
+			fmt.Println(last)
+			articles[index].Guests = []Person{{Jmeno: last.Jmeno, Prijmeni: last.Prijmeni, Funkce: last.Funkce}}
+		}
+
+	}
+
+	return articles
 
 }
 
@@ -613,19 +678,21 @@ func main() {
 	articlesA := make([]Article, 0)
 	articlesB := make([]Article, 0)
 	articlesC := make([]Article, 0)
+	articlesD := make([]Article, 0)
 
 	for i := 0; i < *noPages; i++ {
 		articlesA = A(articlesA, i)
 		articlesB = B(articlesB, i)
 		articlesC = C(articlesC, i)
-		//D(i)
+		articlesD = D(articlesD, i)
 	}
 
 	//articles := append(articlesA, articlesB...)
 	articles := make([]Article, 0)
-	articles = append(articles, articlesA...)
-	articles = append(articles, articlesB...)
-	articles = append(articles, articlesC...)
+	//articles = append(articles, articlesA...)
+	// articles = append(articles, articlesB...)
+	// articles = append(articles, articlesC...)
+	articles = append(articles, articlesD...)
 
 	sortByDate(articles)
 	fmt.Println(articles)
