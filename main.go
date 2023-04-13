@@ -630,18 +630,16 @@ func D(articles []Article, i int) []Article {
 		articles[i].Teaser = teaser
 	}
 
-	/*
-		clearTmp("/tmp/dates.txt")
-		for _, article := range articles {
-			writeFile("/tmp/dates.txt", fmt.Sprintf("%s\n", article.Date))
-		}
-		runScript("./getSchedule.sh")
-		runScript("./filterPorady.sh")
-		currentTime := time.Now()
-		today := fmt.Sprintf("%s", currentTime.Format("2006-01-02"))
+	clearTmp("/tmp/dates.txt")
+	for _, article := range articles {
+		writeFile("/tmp/dates.txt", fmt.Sprintf("%s\n", article.Date))
+	}
+	runScript("./getSchedule.sh")
+	runScript("./filterPorady.sh")
+	currentTime := time.Now()
+	today := fmt.Sprintf("%s", currentTime.Format("2006-01-02"))
 
-		articles = readCsvFields(fmt.Sprintf("%s_porady_schedule.tsv", today), articles)
-	*/
+	articles = readCsvFields(fmt.Sprintf("%s_porady_schedule.tsv", today), articles)
 
 	/*
 		// call Geneea to fix moderators
