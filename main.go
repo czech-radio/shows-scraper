@@ -516,7 +516,6 @@ func B(articles []Article, i int) []Article {
 		writeFile("/tmp/dates.txt", fmt.Sprintf("%s\n", article.Date))
 	}
 	runScript("./getSchedule.sh")
-
 	runScript("./filterPorady.sh")
 
 	currentTime := time.Now()
@@ -566,7 +565,6 @@ func C(articles []Article, i int) []Article {
 		writeFile("/tmp/dates.txt", fmt.Sprintf("%s\n", article.Date))
 	}
 	runScript("./getSchedule.sh")
-
 	runScript("./filterPorady.sh")
 
 	currentTime := time.Now()
@@ -792,7 +790,7 @@ func writeXLS(filename string, articles []Article) {
 		if article.Moderator != "" {
 			f.SetCellValue(sheetName, fmt.Sprintf("D%d", row), article.Moderator)
 		} else {
-			f.SetCellValue(sheetName, fmt.Sprintf("D%d", row), "")
+			f.SetCellValue(sheetName, fmt.Sprintf("D%d", row), "n/a (auto)")
 		}
 
 		if len(article.Guests) > 0 {

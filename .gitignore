@@ -1,3 +1,6 @@
 publicistika-scraper
 *.csv
 *.tsv
+*.xml
+*.xls
+*.xlsx
