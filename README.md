@@ -1,5 +1,9 @@
-# publicistika-scraper
+# publicistika-scraper (OBSOLETE)
 
+_Tento program je obsolete. Je zde ponechán jen pro studijní účely._
+
+
+---
 Přehled témat, hostů a moderátorů ve vybraných pořadech publicistiky.
 
 [![main](https://github.com/czech-radio/publicistika-scraper/actions/workflows/main.yml/badge.svg)](https://github.com/czech-radio/publicistika-scraper/actions/workflows/main.yml) [![Codacy Badge](https://app.codacy.com/project/badge/Grade/518b8ee5b79240e78d3b955beb19d393)](https://app.codacy.com/gh/czech-radio/publicistika-scraper/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
