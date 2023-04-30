@@ -1,4 +1,4 @@
-module publicistika-scraper
+module rozhovory-scraper
 
 go 1.19
 
