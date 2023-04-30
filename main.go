@@ -19,32 +19,32 @@ type Person struct {
 }
 
 type Article struct {
-	Title       string
+	Show        string
+	Episode     string
 	Date        string
 	Description string
 	Link        string
-	// optional
-	Teaser    string
-	Show      string
-	Time      string
-	Moderator string
-	Guests    []Person
+	Teaser      string
+	Time        string
+	Moderator   string
+	Guests      []Person
 }
 
 type ShowName string
 
-func NewArticle(title string, date string, description string, link string, options ...Option) Article {
-	c := Article{}
-	c.Title = title
-	c.Date = date
-	c.Description = description
-	c.Link = link
+func NewArticle(show string, title string, date string, description string, link string, options ...Option) Article {
+	article := Article{}
+	article.Show = show
+	article.Episode = title
+	article.Date = date
+	article.Description = description
+	article.Link = link
 
-	for _, o := range options {
-		c = o(c)
+	for _, option := range options {
+		article = option(article)
 	}
 
-	return c
+	return article
 }
 
 func sortByDate(articles []Article) {
@@ -61,7 +61,7 @@ func sortByDate(articles []Article) {
 }
 
 func (article *Article) PrettyPrint() {
-	fmt.Printf("Pořad: %s\nNázev: %s\nDatum: %s\nObsah: %s\nLink : %s\n\n", article.Show, article.Title, article.Date, article.Description, article.Link)
+	fmt.Printf("Pořad: %s\nNázev: %s\nDatum: %s\nObsah: %s\nLink : %s\n\n", article.Show, article.Episode, article.Date, article.Description, article.Link)
 }
 
 func convertDate(input string) string {
@@ -91,37 +91,26 @@ func convertDate(input string) string {
 	return fmt.Sprintf("%s-%s-%02d", year, mo, day)
 }
 
-func AddShow(show string) Option {
-	return func(c Article) Article {
-		c.Show = show
-		return c
-	}
-}
-
 // GetRozhovoryEpisodes gets *Hlavní zprávy - rozhovory, komentáře* episodes.
 func GetRozhovoryEpisodes(i int) []Article {
-
-	var showName string
 
 	articles := make([]Article, 0)
 
 	c := colly.NewCollector()
 
 	// Find and visit all links to episodes.
+	show := "Hlavní zprávy - rozhovory a komentáře"
 	c.OnHTML(".b-022__block", func(e *colly.HTMLElement) {
-		nadpis := e.ChildText("h3")
-		if nadpis != "" {
-			datum := convertDate(e.ChildText(".b-022__timestamp"))
-			popis := e.ChildText("p")
+		episode := e.ChildText("h3")
+		if episode != "" {
+			date := convertDate(e.ChildText(".b-022__timestamp"))
+			desc := e.ChildText("p")
 			link := fmt.Sprintf("https://plus.rozhlas.cz%s", e.ChildAttr("h3 a", "href"))
-
-			novyArticle := NewArticle(nadpis, datum, popis, link, AddShow(showName))
-			articles = append(articles, novyArticle)
+			article := NewArticle(show, episode, date, desc, link)
+			articles = append(articles, article)
 
 		}
 	})
-
-	showName = "Hlavní zprávy - rozhovory, komentáře"
 
 	c.Visit(fmt.Sprintf("https://plus.rozhlas.cz/hlavni-zpravy-rozhovory-a-komentare-5997846?page=%d", i))
 
@@ -189,8 +178,12 @@ func main() {
 	// sortByDate(articles)
 
 	for _, item := range articles {
-		fmt.Println(item.Date, item.Title)
+		fmt.Println(item.Date)
+		fmt.Println(item.Time)
+		fmt.Println(item.Show)
+		fmt.Println(item.Episode)
 		fmt.Println(item.Description)
+		fmt.Println(item.Moderator)
 		fmt.Println("----")
 	}
 }
