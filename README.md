@@ -17,7 +17,18 @@
 ```bash
 git clone git@github.com:czech-radio/rozhovory-scraper.git
 cd rozhovory-scraper
-go build
+```
+
+### Unix
+
+```bash
+&hellip;
+```
+
+### Windows
+
+```powershell
+.\build.ps1
 ```
 
 ## Usage
