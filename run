@@ -1,4 +1,0 @@
-#!/bin/bash
-
-./publicistika-scraper -p 2
-./cleanup.sh
