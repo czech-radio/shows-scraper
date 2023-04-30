@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -164,14 +165,30 @@ func GetRozhovoryEpisodes(i int) []Article {
 	return articles
 }
 
+// ------------------------------------------------------------------------- //
+
+var (
+	versionFlag     bool
+	buildTime       string
+	sha1GitRevision string
+	versionGitTag   string
+)
+
 func main() {
 
-	noPages := flag.Int("p", 1, "Number of pages to download.")
+	numPages := flag.Int("p", 1, "Number of pages to download.")
+	flag.BoolVar(&versionFlag, "v", false, "Print application version and exit.")
 	flag.Parse()
+
+	// Must be at top!
+	if versionFlag {
+		fmt.Printf("Version: %s %s %s\n", versionGitTag, buildTime, sha1GitRevision)
+		os.Exit(0)
+	}
 
 	articles := make([]Article, 0)
 
-	for i := 0; i < *noPages; i++ {
+	for i := 0; i < *numPages; i++ {
 		articles = append(articles, GetRozhovoryEpisodes(i)...)
 	}
 
