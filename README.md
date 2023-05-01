@@ -22,7 +22,7 @@ cd rozhovory-scraper
 ### Unix
 
 ```bash
-&hellip;
+...
 ```
 
 ### Windows
