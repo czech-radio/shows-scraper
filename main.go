@@ -202,7 +202,9 @@ func main() {
 		fmt.Println(item.Episode)
 		fmt.Println(item.Description)
 		fmt.Println(item.Moderator)
-		fmt.Println(item.Guests)
+		for _, quest := range item.Guests {
+			fmt.Println("-", quest)
+		}
 		fmt.Println("----")
 	}
 }
