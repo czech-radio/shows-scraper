@@ -192,7 +192,8 @@ func main() {
 		articles = append(articles, GetRozhovoryEpisodes(i)...)
 	}
 
-	// sortByDate(articles)
+	// Sort articles in-place.
+	sortByDate(articles)
 
 	for _, item := range articles {
 		fmt.Println(item.Date)
@@ -201,6 +202,7 @@ func main() {
 		fmt.Println(item.Episode)
 		fmt.Println(item.Description)
 		fmt.Println(item.Moderator)
+		fmt.Println(item.Guests)
 		fmt.Println("----")
 	}
 }
