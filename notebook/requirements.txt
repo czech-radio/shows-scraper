@@ -1,0 +1,4 @@
+black[jupyter]
+scrapy
+ipykernel
+git+https://github.com/czech-radio/schedule.git
