@@ -6,12 +6,16 @@
 
 - [x] Název pořadu
 - [x] Název epizody
-- [x] Popis epizody
-- [ ] Počet témat epizody (z názvu).
+- [x] Datum vysílání epizody (`YYYY-MM-DD`).
 - [x] Čas vysílání epizody (polední = 12:10, odpolední = 18:10).
+- [x] Webový odkaz epizody
+- [ ] Počet témat epizody (získáme z názvu, napovídá kolik bylo hostů).
+- [x] Popis/Teaser epizody
+- [ ] Moderátor epizody (jméno, příjmení)
+- [ ] Hosté epizody (jméno, příjmení, funkce/popis).
 
-- [ ] Získej moderátora (částěčně splněno).
-- [ ] Získej hosty.
+Python kód je v adresáři [python](./python)
+Výstupy se ukládájí do adresáře [data](./data)
 
 ## Build
 
@@ -34,8 +38,12 @@ cd rozhovory-scraper
 
 ## Usage
 
-```bash
-./rozhovory-scraper -p [počet_stran]
+```powershell
+.\rozhovory-scraper.exe -p [page_count (default: 1)]
 ```
 
-- `p` Počet stran ke stažení, výchozí 1.
+např.
+
+```powershell
+.\rozhovory-scraper.exe -p 3
+```
