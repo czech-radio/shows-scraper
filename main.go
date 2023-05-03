@@ -139,9 +139,18 @@ func GetRozhovoryEpisodes(pageNumber int) []Article {
 	})
 
 	c.OnHTML(".node-block--authors", func(e *colly.HTMLElement) {
-		moderatorText := e.ChildTexts("a")
-		splitedModeratorText := strings.Split(moderatorText[0], " ")
+		moderatorText := e.Text
+		moderatorText = strings.Split(moderatorText, ",")[0]
+
+		replacer := strings.NewReplacer("autor: ", "", "autoři:", "")
+
+		moderatorText = replacer.Replace(moderatorText)
+		moderatorText = strings.TrimSpace(moderatorText)
+
+		splitedModeratorText := strings.Split(moderatorText, " ")
+
 		modedaratorFistName, moderatorLastName := splitedModeratorText[0], splitedModeratorText[1]
+
 		moderator = Person{
 			FirstName: modedaratorFistName,
 			LastName:  moderatorLastName,
