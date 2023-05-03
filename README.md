@@ -11,8 +11,8 @@
 - [x] Webový odkaz epizody
 - [ ] Počet témat epizody (získáme z názvu, napovídá kolik bylo hostů).
 - [x] Popis/Teaser epizody
-- [ ] Moderátor epizody (jméno, příjmení)
-- [ ] Hosté epizody (jméno, příjmení, funkce/popis).
+- [x] Moderátor epizody (jméno, příjmení)
+- [x] Hosté epizody (jméno, příjmení, funkce/popis).
 
 Python kód je v adresáři [python](./python)
 Výstupy se ukládájí do adresáře [data](./data)
