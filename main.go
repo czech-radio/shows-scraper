@@ -100,6 +100,7 @@ func GetRozhovoryEpisodes(pageNumber int) []Article {
 	show := "Hlavní zprávy - rozhovory a komentáře"
 	var teaser, episode, date, time string
 	var moderator Person
+	var moderator2 string
 	var guests []Guest
 
 	articles := make([]Article, 0)
@@ -109,6 +110,7 @@ func GetRozhovoryEpisodes(pageNumber int) []Article {
 	// ------------------------------------------------------------------------- //
 	c := colly.NewCollector()
 
+	// Collect article links
 	c.OnHTML(".b-022__block--description", func(e *colly.HTMLElement) {
 		link := fmt.Sprintf("https://plus.rozhlas.cz%s", e.ChildAttr("h3 a", "href"))
 		links = append(links, link)
@@ -120,10 +122,16 @@ func GetRozhovoryEpisodes(pageNumber int) []Article {
 	// ------------------------------------------------------------------------- //
 	c = colly.NewCollector()
 
+	c.OnError(func(r *colly.Response, err error) {
+		fmt.Println("Request URL:", r.Request.URL, "failed with response:", r, "\nError:", err)
+	})
+
+	// Episode teaser
 	c.OnHTML(".field.field-perex", func(e *colly.HTMLElement) {
 		teaser = e.ChildText("p")
 	})
 
+	// Episode title
 	c.OnHTML(".content", func(e *colly.HTMLElement) {
 		episode = e.ChildText("h1")
 
@@ -138,6 +146,7 @@ func GetRozhovoryEpisodes(pageNumber int) []Article {
 		date = convertDate(e.ChildText(".node-block__block--date"))
 	})
 
+	// Episode author (my be missing)
 	c.OnHTML(".node-block--authors", func(e *colly.HTMLElement) {
 		moderatorText := e.Text
 		moderatorText = strings.Split(moderatorText, ",")[0]
@@ -148,7 +157,6 @@ func GetRozhovoryEpisodes(pageNumber int) []Article {
 		moderatorText = strings.TrimSpace(moderatorText)
 
 		splitedModeratorText := strings.Split(moderatorText, " ")
-
 		modedaratorFistName, moderatorLastName := splitedModeratorText[0], splitedModeratorText[1]
 
 		moderator = Person{
@@ -157,9 +165,37 @@ func GetRozhovoryEpisodes(pageNumber int) []Article {
 		}
 	})
 
+	// Episode guests (+ moderator backup strategy when node-block--athors is missing)
 	c.OnHTML(".factbox", func(e *colly.HTMLElement) {
 		guests = make([]Guest, 0)
 		guestsTexts := e.ChildTexts("li")
+
+		// >> Used only when `moderator` is missing (also can be missing)
+		// See https://radiozurnal.rozhlas.cz/poledni-publicistika-piratsky-sjezd-pavel-v-dnipru-knizni-festival-v-lipsku-8982816
+		// HARD CODED
+		moderator2 = strings.Split(e.Text, ":")[0]
+		replacer2 := strings.NewReplacer("Hosté", "", "Hosty", "", "byli", "", "je", "", "byl", "", "jsou", "")
+		moderator2 = strings.TrimSpace(replacer2.Replace(moderator2))
+		if moderator2 == "Tomáše Pancíře" {
+			moderator2 = "Tomáš Pancíř"
+		}
+		if moderator2 == "Věry Štechrová" {
+			moderator2 = "Věra Štechrová"
+		}
+		if moderator2 == "Vladimíra Kroce" {
+			moderator2 = "Vladimír Kroc"
+		}
+		// <<
+
+		if strings.TrimSpace(strings.Join(guestsTexts, "")) == "" {
+			// No <li> present so we try <p>.
+			// See https://radiozurnal.rozhlas.cz/poledni-publicistika-piratsky-sjezd-pavel-v-dnipru-knizni-festival-v-lipsku-8982816
+			guestsTexts = e.ChildTexts("p")
+		}
+		if strings.TrimSpace(strings.Join(guestsTexts, "")) == "" {
+			// Nothing found, raise error!
+			log.Fatal(date, "; ", time, "; ", episode)
+		}
 
 		replacer := strings.NewReplacer(".", " ", ";", " ")
 		for i, g := range guestsTexts {
@@ -172,9 +208,16 @@ func GetRozhovoryEpisodes(pageNumber int) []Article {
 		}
 	})
 
+	// Get all episodes
 	for _, link := range links {
 		c.Visit(link)
-
+		// This will not work if async is allowed!
+		if moderator.LastName == "" || moderator.FirstName == "" {
+			split := strings.Split(moderator2, " ")
+			fname, lname := split[0], split[1]
+			moderator.LastName = lname
+			moderator.FirstName = fname
+		}
 		article := NewArticle(show, episode, date, time, link, teaser, moderator, guests)
 		articles = append(articles, article)
 	}
