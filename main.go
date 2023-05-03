@@ -14,36 +14,42 @@ import (
 type Option func(c Article) Article
 
 type Person struct {
-	Prijmeni string
-	Jmeno    string
-	Funkce   string
+	FirstName string
+	LastName  string
+}
+
+type Guest struct {
+	Person
+	Function string
 }
 
 type Article struct {
 	Show        string
 	Episode     string
 	Date        string
+	Time        string
 	Description string
 	Link        string
 	Teaser      string
-	Time        string
-	Moderator   string
-	Guests      []Person
+	Moderator   Person
+	Guests      []Guest
 }
 
 type ShowName string
 
-func NewArticle(show string, title string, date string, description string, link string, options ...Option) Article {
+func NewArticle(show string, episode string, date string, time string, link string, teaser string, description string, moderator Person, guests []Guest) Article {
 	article := Article{}
 	article.Show = show
-	article.Episode = title
+	article.Episode = episode
 	article.Date = date
-	article.Description = description
+	article.Time = time
 	article.Link = link
+	article.Teaser = teaser
+	article.Description = description
+	article.Moderator = moderator
+	article.Guests = guests
 
-	for _, option := range options {
-		article = option(article)
-	}
+	// for _, option := range options { article = option(article) }
 
 	return article
 }
@@ -73,7 +79,7 @@ func convertDate(input string) string {
 		return input
 
 	}
-	year := fmt.Sprintf("%s", s[2])
+	year := s[2]
 	months := map[string]string{
 		"leden":    "01",
 		"únor":     "02",
@@ -89,77 +95,76 @@ func convertDate(input string) string {
 		"prosinec": "12",
 	}
 	mo := months[s[1]]
+
 	return fmt.Sprintf("%s-%s-%02d", year, mo, day)
 }
 
 // GetRozhovoryEpisodes gets *Hlavní zprávy - rozhovory, komentáře* episodes.
-func GetRozhovoryEpisodes(i int) []Article {
+func GetRozhovoryEpisodes(pageNumber int) []Article {
+
+	show := "Hlavní zprávy - rozhovory a komentáře"
+	var teaser, episode, date, description, time string
+	var moderator Person
+	var guests []Guest
 
 	articles := make([]Article, 0)
+	links := make([]string, 0)
 
+	// Visit index pages and collect article links.
+	// ------------------------------------------------------------------------- //
 	c := colly.NewCollector()
 
-	// Find and visit all links to episodes.
-	show := "Hlavní zprávy - rozhovory a komentáře"
-	c.OnHTML(".b-022__block", func(e *colly.HTMLElement) {
-		episode := e.ChildText("h3")
-		if episode != "" {
-			date := convertDate(e.ChildText(".b-022__timestamp"))
-			desc := e.ChildText("p")
-			link := fmt.Sprintf("https://plus.rozhlas.cz%s", e.ChildAttr("h3 a", "href"))
-			article := NewArticle(show, episode, date, desc, link)
-			articles = append(articles, article)
-
-		}
+	c.OnHTML(".b-022__block--description", func(e *colly.HTMLElement) {
+		link := fmt.Sprintf("https://plus.rozhlas.cz%s", e.ChildAttr("h3 a", "href"))
+		links = append(links, link)
 	})
 
-	c.Visit(fmt.Sprintf("https://plus.rozhlas.cz/hlavni-zpravy-rozhovory-a-komentare-5997846?page=%d", i))
+	c.Visit(fmt.Sprintf("https://plus.rozhlas.cz/hlavni-zpravy-rozhovory-a-komentare-5997846?page=%d", pageNumber))
 
+	// Visit individual articles and collect article data.
+	// ------------------------------------------------------------------------- //
 	c = colly.NewCollector()
 
-	cnt := 0
-	var moderator, guests, reply, teaser string
-	var persons []Person
-
 	c.OnHTML(".field.field-perex", func(e *colly.HTMLElement) {
-		teaser = fmt.Sprintf(e.ChildText("p"))
+		teaser = e.ChildText("p")
+	})
+
+	c.OnHTML(".content", func(e *colly.HTMLElement) {
+		episode = e.ChildText("h1")
+
+		if strings.Contains(episode, "Polední") {
+			time = "12:10"
+		} else {
+			time = "18:10"
+		}
+
+		date = convertDate(e.ChildText(".node-block__block--date"))
+		description = e.ChildText("p")
+	})
+
+	c.OnHTML(".node-block--authors", func(e *colly.HTMLElement) {
+		moderatorText := e.ChildTexts("a")
+		splitedModeratorText := strings.Split(moderatorText[0], " ")
+		modedaratorFistName, moderatorLastName := splitedModeratorText[0], splitedModeratorText[1]
+		moderator = Person{
+			FirstName: modedaratorFistName,
+			LastName:  moderatorLastName,
+		}
 	})
 
 	c.OnHTML(".factbox", func(e *colly.HTMLElement) {
-		reply = fmt.Sprintf(e.ChildText("p"))
-		reply2 := fmt.Sprintf(e.ChildText("li") + " ")
-
-		inline := fmt.Sprintf("%s %s", reply, reply2)
-
-		split := strings.Split(inline, ":")
-		moderator = strings.ReplaceAll(split[0], "Hosty", "")
-		moderator = strings.ReplaceAll(moderator, "Hosté", "")
-		moderator = strings.ReplaceAll(moderator, "jsou", "")
-		moderator = strings.ReplaceAll(moderator, "byli", "")
-		moderator = strings.ReplaceAll(moderator, `"`, "")
-
-		moderator = strings.TrimSpace(moderator)
-
-		guests = split[1]
-		guests = strings.ReplaceAll(guests, `"`, "")
-		guests = strings.TrimSpace(guests)
-		entries := strings.Split(guests, ";")
-
-		persons = make([]Person, 0)
-
-		for _, person := range entries {
+		guests = make([]Guest, 0)
+		guestsText := strings.TrimSpace(e.ChildText("li"))
+		for _, person := range strings.Split(guestsText, ";") {
 			fields := strings.Fields(person)
-			persons = append(persons, Person{Jmeno: fields[0], Prijmeni: strings.ReplaceAll(fields[1], ",", ""), Funkce: strings.Join(fields[2:len(fields)], " ")})
+			guests = append(guests, Guest{Person: Person{FirstName: fields[0], LastName: strings.ReplaceAll(fields[1], ",", "")}, Function: strings.Join(fields[2:], " ")})
 		}
-
-		cnt++
 	})
 
-	for i, article := range articles {
-		c.Visit(article.Link)
-		articles[i].Moderator = moderator
-		articles[i].Guests = persons
-		articles[i].Teaser = teaser
+	for _, link := range links {
+		c.Visit(link)
+		article := NewArticle(show, episode, date, time, link, teaser, description, moderator, guests)
+		articles = append(articles, article)
 	}
 
 	return articles
@@ -195,16 +200,19 @@ func main() {
 	// Sort articles in-place.
 	sortByDate(articles)
 
-	for _, item := range articles {
-		fmt.Println(item.Date)
-		fmt.Println(item.Time)
-		fmt.Println(item.Show)
-		fmt.Println(item.Episode)
-		fmt.Println(item.Description)
-		fmt.Println(item.Moderator)
-		for _, quest := range item.Guests {
-			fmt.Println("-", quest)
+	for _, article := range articles {
+		fmt.Println(article.Show)
+		fmt.Println(article.Date)
+		fmt.Println(article.Time)
+		fmt.Println(article.Link)
+		fmt.Println(article.Teaser)
+		fmt.Println(article.Description)
+		fmt.Println(article.Moderator)
+		fmt.Println("---")
+		for _, guest := range article.Guests {
+			fmt.Println("*", guest.FirstName, guest.LastName, guest.Function)
 		}
-		fmt.Println("----")
+
+		fmt.Println("-------")
 	}
 }
