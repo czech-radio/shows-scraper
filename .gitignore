@@ -1,7 +1,1 @@
-publicistika-scraper*
-*.csv
-*.tsv
-*.xml
-*.xls
-*.xlsx
-*.exe
+rozhovory-scraper*
