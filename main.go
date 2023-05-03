@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"sort"
 	"strconv"
@@ -12,24 +14,24 @@ import (
 )
 
 type Person struct {
-	FirstName string
-	LastName  string
+	FirstName string `json:"firstName"`
+	LastName  string `json:"lastName"`
 }
 
 type Guest struct {
 	Person
-	Function string
+	Function string `json:"function"`
 }
 
 type Article struct {
-	Show      string
-	Episode   string
-	Date      string
-	Time      string
-	Link      string
-	Teaser    string
-	Moderator Person
-	Guests    []Guest
+	Show      string  `json:"show"`
+	Episode   string  `json:"episode"`
+	Date      string  `json:"date"`
+	Time      string  `json:"time"`
+	Link      string  `json:"link"`
+	Teaser    string  `json:"teaser"`
+	Moderator Person  `json:"moderator"`
+	Guests    []Guest `json:"guests"`
 }
 
 type ShowName string
@@ -140,8 +142,10 @@ func GetRozhovoryEpisodes(pageNumber int) []Article {
 
 		if strings.Contains(episode, "Polední") {
 			time = "12:10"
+			episode = strings.Replace(episode, "Polední publicistika: ", "", 1)
 		} else {
 			time = "18:10"
+			episode = strings.Replace(episode, "Odpolední publicistika: ", "", 1)
 		}
 
 		date = convertDate(e.ChildText(".node-block__block--date"))
@@ -159,9 +163,15 @@ func GetRozhovoryEpisodes(pageNumber int) []Article {
 
 	c.OnHTML(".factbox", func(e *colly.HTMLElement) {
 		guests = make([]Guest, 0)
-		guestsText := strings.TrimSpace(e.ChildText("li"))
-		for _, person := range strings.Split(guestsText, ";") {
-			fields := strings.Fields(person)
+		guestsTexts := e.ChildTexts("li")
+
+		replacer := strings.NewReplacer(".", " ", ";", " ")
+		for i, g := range guestsTexts {
+			guestsTexts[i] = replacer.Replace(g)
+		}
+
+		for _, g := range guestsTexts {
+			fields := strings.Fields(g)
 			guests = append(guests, Guest{Person: Person{FirstName: fields[0], LastName: strings.ReplaceAll(fields[1], ",", "")}, Function: strings.Join(fields[2:], " ")})
 		}
 	})
@@ -206,6 +216,14 @@ func main() {
 	sortByDate(articles)
 
 	for _, article := range articles {
-		article.PrettyPrint()
+		//article.PrettyPrint()
+
+		val, err := json.Marshal(article)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Println(string(val))
 	}
 }
