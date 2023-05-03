@@ -11,8 +11,6 @@ import (
 	"github.com/gocolly/colly/v2"
 )
 
-type Option func(c Article) Article
-
 type Person struct {
 	FirstName string
 	LastName  string
@@ -24,20 +22,19 @@ type Guest struct {
 }
 
 type Article struct {
-	Show        string
-	Episode     string
-	Date        string
-	Time        string
-	Description string
-	Link        string
-	Teaser      string
-	Moderator   Person
-	Guests      []Guest
+	Show      string
+	Episode   string
+	Date      string
+	Time      string
+	Link      string
+	Teaser    string
+	Moderator Person
+	Guests    []Guest
 }
 
 type ShowName string
 
-func NewArticle(show string, episode string, date string, time string, link string, teaser string, description string, moderator Person, guests []Guest) Article {
+func NewArticle(show string, episode string, date string, time string, link string, teaser string, moderator Person, guests []Guest) Article {
 	article := Article{}
 	article.Show = show
 	article.Episode = episode
@@ -45,11 +42,8 @@ func NewArticle(show string, episode string, date string, time string, link stri
 	article.Time = time
 	article.Link = link
 	article.Teaser = teaser
-	article.Description = description
 	article.Moderator = moderator
 	article.Guests = guests
-
-	// for _, option := range options { article = option(article) }
 
 	return article
 }
@@ -68,7 +62,19 @@ func sortByDate(articles []Article) {
 }
 
 func (article *Article) PrettyPrint() {
-	fmt.Printf("Pořad: %s\nNázev: %s\nDatum: %s\nObsah: %s\nLink : %s\n\n", article.Show, article.Episode, article.Date, article.Description, article.Link)
+	// return fmt.Sprintf("Pořad: %s\nEpizoda: %s\nDatum: %s\nObsah: %s\nLink : %s\n\n", article.Show, article.Episode, article.Date, article.Teaser, article.Link)
+
+	fmt.Println(article.Show)
+	fmt.Println(article.Date)
+	fmt.Println(article.Time)
+	fmt.Println(article.Link)
+	fmt.Println(article.Teaser)
+	fmt.Println(article.Moderator.FirstName, article.Moderator.LastName)
+	for _, guest := range article.Guests {
+		fmt.Println("*", guest.FirstName, guest.LastName, guest.Function)
+	}
+
+	fmt.Println("-------")
 }
 
 func convertDate(input string) string {
@@ -103,7 +109,7 @@ func convertDate(input string) string {
 func GetRozhovoryEpisodes(pageNumber int) []Article {
 
 	show := "Hlavní zprávy - rozhovory a komentáře"
-	var teaser, episode, date, description, time string
+	var teaser, episode, date, time string
 	var moderator Person
 	var guests []Guest
 
@@ -139,7 +145,6 @@ func GetRozhovoryEpisodes(pageNumber int) []Article {
 		}
 
 		date = convertDate(e.ChildText(".node-block__block--date"))
-		description = e.ChildText("p")
 	})
 
 	c.OnHTML(".node-block--authors", func(e *colly.HTMLElement) {
@@ -163,7 +168,7 @@ func GetRozhovoryEpisodes(pageNumber int) []Article {
 
 	for _, link := range links {
 		c.Visit(link)
-		article := NewArticle(show, episode, date, time, link, teaser, description, moderator, guests)
+		article := NewArticle(show, episode, date, time, link, teaser, moderator, guests)
 		articles = append(articles, article)
 	}
 
@@ -201,18 +206,6 @@ func main() {
 	sortByDate(articles)
 
 	for _, article := range articles {
-		fmt.Println(article.Show)
-		fmt.Println(article.Date)
-		fmt.Println(article.Time)
-		fmt.Println(article.Link)
-		fmt.Println(article.Teaser)
-		fmt.Println(article.Description)
-		fmt.Println(article.Moderator)
-		fmt.Println("---")
-		for _, guest := range article.Guests {
-			fmt.Println("*", guest.FirstName, guest.LastName, guest.Function)
-		}
-
-		fmt.Println("-------")
+		article.PrettyPrint()
 	}
 }
