@@ -36,6 +36,7 @@ type Article struct {
 
 type ShowName string
 
+// NewArticle creates a new article.
 func NewArticle(show string, episode string, date string, time string, link string, teaser string, moderator Person, guests []Guest) Article {
 	article := Article{}
 	article.Show = show
@@ -50,6 +51,7 @@ func NewArticle(show string, episode string, date string, time string, link stri
 	return article
 }
 
+// sortByDate sorts articles in-place by date.
 func sortByDate(articles []Article) {
 	sort.SliceStable(articles, func(i, j int) bool {
 		ci, cj := fmt.Sprintf("%s %s", articles[i].Show, articles[i].Date), fmt.Sprintf("%s %s", articles[j].Show, articles[j].Date)
@@ -63,22 +65,7 @@ func sortByDate(articles []Article) {
 	})
 }
 
-func (article *Article) PrettyPrint() {
-	// return fmt.Sprintf("Pořad: %s\nEpizoda: %s\nDatum: %s\nObsah: %s\nLink : %s\n\n", article.Show, article.Episode, article.Date, article.Teaser, article.Link)
-
-	fmt.Println(article.Show)
-	fmt.Println(article.Date)
-	fmt.Println(article.Time)
-	fmt.Println(article.Link)
-	fmt.Println(article.Teaser)
-	fmt.Println(article.Moderator.FirstName, article.Moderator.LastName)
-	for _, guest := range article.Guests {
-		fmt.Println("*", guest.FirstName, guest.LastName, guest.Function)
-	}
-
-	fmt.Println("-------")
-}
-
+// convertDate converts date string to `YYYY-MM-DD` format.
 func convertDate(input string) string {
 	s := strings.Split(input, " ")
 	day, err := strconv.Atoi(strings.Split(s[0], ".")[0])
@@ -178,6 +165,7 @@ func GetRozhovoryEpisodes(pageNumber int) []Article {
 
 	for _, link := range links {
 		c.Visit(link)
+
 		article := NewArticle(show, episode, date, time, link, teaser, moderator, guests)
 		articles = append(articles, article)
 	}
@@ -215,15 +203,12 @@ func main() {
 	// Sort articles in-place.
 	sortByDate(articles)
 
-	for _, article := range articles {
-		//article.PrettyPrint()
+	// JSON array result.
+	result, err := json.Marshal(articles)
 
-		val, err := json.Marshal(article)
-
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		fmt.Println(string(val))
+	if err != nil {
+		log.Fatal(err)
 	}
+
+	fmt.Println(string(result))
 }
