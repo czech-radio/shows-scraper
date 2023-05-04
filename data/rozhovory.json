@@ -5,7 +5,7 @@
         "date": "2023-05-03",
         "time": "18:10",
         "link": "https://plus.rozhlas.cz/odpoledni-publicistika-prognoza-cnb-atentat-na-putina-kauza-mornstajnova-8985228",
-        "teaser": "Co vyplývá z dnešní prognózy ČNB, pokud jde o možný další vývoj zdejší ekonomiky? Na kolik může obstát tvrzení Kremlu, že se Ukrajinci pokusili o atentát na prezidenta Putina s nasazením bezpilotních letounů v Moskvě? A je možné vymezit hranice literární inspirace i na základě sporu kolem nového románu Aleny Mornštajnové? Poslechněte si celou Odpolední publicistiku.",
+        "teaser": "Co vyplývá z dnešní prognózy ČNB, pokud jde o možný další vývoj zdejší ekonomiky? Na kolik může obstát tvrzení Kremlu, že se Ukrajinci pokusili o atentát na prezidenta Putina s nasazením bezpilotních letounů v Moskvě? A je možné vymezit hranice literární inspirace i na základě sporu kolem nového románu Aleny Mornštajnové? Poslechněte si celou odpolední publicistiku.",
         "moderator": {
             "firstName": "Tomáš",
             "lastName": "Pancíř"
@@ -26,7 +26,8 @@
                 "lastName": "Němec",
                 "function": "publicista, spisovatel, šéfredaktor časopisu Host"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -55,7 +56,8 @@
                 "lastName": "Nerudová",
                 "function": "kurátorka Centra kulturní antropologie Moravského zemského muzea"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -84,7 +86,8 @@
                 "lastName": "Žák",
                 "function": "meteorolog a odborník na tornáda"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -113,7 +116,8 @@
                 "lastName": "Charypar",
                 "function": "Ústav pro českou literaturu AV ČR"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -147,7 +151,8 @@
                 "lastName": "Vidomus",
                 "function": "dramaturg stanice ČRo Jazz"
             }
-        ]
+        ],
+        "topicsCount": 4
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -176,7 +181,8 @@
                 "lastName": "Krafl",
                 "function": "vedoucí Českého literárního centra"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -205,7 +211,8 @@
                 "lastName": "Rut",
                 "function": "Katedra autorské tvorby a pedagogiky DAMU"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -234,7 +241,8 @@
                 "lastName": "Barták",
                 "function": "vedoucí Centra veřejného zdraví se zaměřením na alkohol Kliniky adiktologie 1 LF UK a VFN"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -268,7 +276,8 @@
                 "lastName": "Drastichová",
                 "function": "ředitelka Nadačního fondu Českého rozhlasu"
             }
-        ]
+        ],
+        "topicsCount": 2
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -297,7 +306,8 @@
                 "lastName": "Fingerland",
                 "function": "komentátor"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -331,7 +341,8 @@
                 "lastName": "Boček",
                 "function": "ředitel festivalu Literatura žije"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -360,7 +371,8 @@
                 "lastName": "Daušová",
                 "function": "ředitelka neziskové organizace Helppes"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -389,7 +401,8 @@
                 "lastName": "Václavík",
                 "function": "odborník na výzkum vesmíru, Česká kosmická kancelář"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -418,7 +431,8 @@
                 "lastName": "Šmíd",
                 "function": "ředitel o p s České Švýcarsko"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -447,7 +461,8 @@
                 "lastName": "Balucha",
                 "function": "zpravodaj Českého rozhlasu ve Francii"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -476,7 +491,8 @@
                 "lastName": "Cibulka",
                 "function": "datový analytik ČRo"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -505,7 +521,8 @@
                 "lastName": "Brtišová",
                 "function": "vedoucí Národní kulturní památky Ploština"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -534,7 +551,8 @@
                 "lastName": "Dopieralla",
                 "function": "politolog z Institutu politologických studií Fakulty sociálních věd UK"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -568,7 +586,8 @@
                 "lastName": "Huth",
                 "function": "klimatolog, Ústav fyziky atmosféry Akademie věd a Přírodovědecká fakulta Univerzity Karlovy"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -602,7 +621,8 @@
                 "lastName": "Slezák",
                 "function": "zahraničněpolitický komentátor ČRo"
             }
-        ]
+        ],
+        "topicsCount": 4
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -631,7 +651,8 @@
                 "lastName": "Spratek",
                 "function": "z Hvězdárny a planetária hlavního města Prahy"
             }
-        ]
+        ],
+        "topicsCount": 2
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -665,7 +686,8 @@
                 "lastName": "Soukup",
                 "function": "redaktor zahraniční redakce ČRo"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -694,7 +716,8 @@
                 "lastName": "Slavíček",
                 "function": "předseda České federace potravinových bank"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -728,7 +751,8 @@
                 "lastName": "Anýž",
                 "function": "komentátor Aktuálně cz"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -736,7 +760,7 @@
         "date": "2023-04-18",
         "time": "18:10",
         "link": "https://plus.rozhlas.cz/odpoledni-publicistika-emisni-povolenky-dovoz-ukrajinskeho-obili-kostra-8975193",
-        "teaser": "",
+        "teaser": "Evropským parlamentem prošly změny obchodování s emisními povolenkami. Jaké budou mít dopady na firmy i domácnosti? Čeští zemědělci se připojili ke kritice dovozu ukrajinského obilí. Je tato kritika na místě? Ve Švýcarsku se vydražila kostra Tyrannosaura rexe. Patří podobné nálezy do rukou soukromníků? Poslechněte si odpolední publicistiku s Tomášem Pancířem.",
         "moderator": {
             "firstName": "Tomáš",
             "lastName": "Pancíř"
@@ -757,7 +781,8 @@
                 "lastName": "Kvaček",
                 "function": "vedoucí paleontologickém oddělení Národního muzea"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -786,7 +811,8 @@
                 "lastName": "Trlifajová",
                 "function": "sociální antropoložka, Centrum pro společenské otázky – SPOT"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -820,7 +846,8 @@
                 "lastName": "Mandys",
                 "function": "pořadatel Magnesia Litera"
             }
-        ]
+        ],
+        "topicsCount": 4
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -849,7 +876,8 @@
                 "lastName": "Jelínek",
                 "function": "politolog"
             }
-        ]
+        ],
+        "topicsCount": 4
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -878,7 +906,8 @@
                 "lastName": "Zemanová",
                 "function": "manažerka projektu Čistá Sázava"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -907,7 +936,8 @@
                 "lastName": "Renčín",
                 "function": "ředitel festivalu a marketingový ředitel Active Radio"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -921,11 +951,6 @@
             "lastName": "Štechrová"
         },
         "guests": [
-            {
-                "firstName": "Hosty",
-                "lastName": "Věry",
-                "function": "Štechrové byli:"
-            },
             {
                 "firstName": "Dominik",
                 "lastName": "Stroukal",
@@ -941,7 +966,8 @@
                 "lastName": "Spratek",
                 "function": "odborný pracovník Hvězdárny a planetária hlavního města Prahy"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -970,7 +996,8 @@
                 "lastName": "Prokopjuková",
                 "function": "Ukrajinská iniciativa v ČR"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -1004,7 +1031,8 @@
                 "lastName": "Hofman",
                 "function": "mluvčí magistrátu hlavního města Prahy"
             }
-        ]
+        ],
+        "topicsCount": 2
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -1033,7 +1061,8 @@
                 "lastName": "Fingerland",
                 "function": "komentátor ČRo"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -1062,7 +1091,8 @@
                 "lastName": "Vitík",
                 "function": "tiskový mluvčí České pošty"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -1096,7 +1126,8 @@
                 "lastName": "Mikoška",
                 "function": "viceprezident Svazu obchodu a cestovního ruchu"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -1125,7 +1156,8 @@
                 "lastName": "Filip",
                 "function": "Růžička, neurolog z Neurologické kliniky 1 LF UK"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -1154,7 +1186,8 @@
                 "lastName": "Stojar",
                 "function": "Centrum bezpečnostních a vojenskostrategických studií Univerzity obrany"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -1168,11 +1201,6 @@
             "lastName": "Štechrová"
         },
         "guests": [
-            {
-                "firstName": "Hosty",
-                "lastName": "Věry",
-                "function": "Štechrové byli:"
-            },
             {
                 "firstName": "Petr",
                 "lastName": "Jan",
@@ -1188,7 +1216,8 @@
                 "lastName": "Zachová",
                 "function": "šéfredaktorka serveru EURAKTIV cz"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -1202,11 +1231,6 @@
             "lastName": "Pancíř"
         },
         "guests": [
-            {
-                "firstName": "Hosty",
-                "lastName": "Tomáše",
-                "function": "Pancíře byli:"
-            },
             {
                 "firstName": "Vít",
                 "lastName": "Rakušan",
@@ -1222,7 +1246,8 @@
                 "lastName": "Tišer",
                 "function": "ředitel organizace ARA ART"
             }
-        ]
+        ],
+        "topicsCount": 2
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -1251,7 +1276,8 @@
                 "lastName": "Krátká",
                 "function": "Regionální muzeum Vysoké Mýto"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -1280,7 +1306,8 @@
                 "lastName": "Jansta",
                 "function": "ovocnář, Ovocnářství Jansta ve Velkých Bílovicích"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -1314,7 +1341,8 @@
                 "lastName": "Vasić",
                 "function": "ze sportovní redakce Českého rozhlasu"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -1343,7 +1371,8 @@
                 "lastName": "Tuominen",
                 "function": "finský velvyslanec v Praze"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -1372,7 +1401,8 @@
                 "lastName": "Odstrčil",
                 "function": "analytik, iniciativa Evropa v datech"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -1401,7 +1431,8 @@
                 "lastName": "Schneider",
                 "function": "podcast Redneck, komentátor ČRo Plus a Rádia Wave"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -1430,7 +1461,8 @@
                 "lastName": "Majerčík",
                 "function": "odborník na mezinárodní právo, Masarykova univerzita"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -1459,7 +1491,8 @@
                 "lastName": "Stárek",
                 "function": "starosta Prahy 6, ODS"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -1493,7 +1526,8 @@
                 "lastName": "Kutlák",
                 "function": "předseda Společnosti pro zachování Hořických pašijových her"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -1522,7 +1556,8 @@
                 "lastName": "Jošková",
                 "function": "vedoucí provozu Hradu a zástupkyně kastelána"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -1556,7 +1591,8 @@
                 "lastName": "Lukeš",
                 "function": "profesor historie a mezinárodních vztahů, Bostonská univerzita"
             }
-        ]
+        ],
+        "topicsCount": 2
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -1585,7 +1621,8 @@
                 "lastName": "Havlíček",
                 "function": "analytik AMO"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -1614,7 +1651,8 @@
                 "lastName": "Balucha",
                 "function": "v rozhovoru s Věrou Kunderovou"
             }
-        ]
+        ],
+        "topicsCount": 2
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -1643,7 +1681,8 @@
                 "lastName": "Raupachová",
                 "function": "advokátka"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -1677,7 +1716,8 @@
                 "lastName": "Ondráček",
                 "function": "sociolog sportu a autor podcastu Outsider"
             }
-        ]
+        ],
+        "topicsCount": 4
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -1706,7 +1746,8 @@
                 "lastName": "Žikovská",
                 "function": "ředitelka české IFPI"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -1740,7 +1781,8 @@
                 "lastName": "Ciglerová",
                 "function": "zpravodajka Deníku N"
             }
-        ]
+        ],
+        "topicsCount": 4
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -1769,7 +1811,8 @@
                 "lastName": "Zavoral",
                 "function": "generální ředitel Českého rozhlasu"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -1798,7 +1841,8 @@
                 "lastName": "Bříza",
                 "function": "odborník na oblast jaderných zbraní z katedry mezinárodních vztahů Fakulty sociálních věd Univerzity Karlovy"
             }
-        ]
+        ],
+        "topicsCount": 3
     },
     {
         "show": "Hlavní zprávy - rozhovory a komentáře",
@@ -1827,6 +1871,7 @@
                 "lastName": "Hrdina",
                 "function": "tajemník Asociace českého tradičního obchodu"
             }
-        ]
+        ],
+        "topicsCount": 3
     }
 ]
