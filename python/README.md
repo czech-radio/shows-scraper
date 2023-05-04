@@ -1,9 +1,3 @@
----
-title:    Selected shows collector  
-author:   Czech Radio  
-created:  2023-04-15  
----
-
 # Selected shows collector
 
 **This application is used to crowle/scrape data for internal usage.**
@@ -62,10 +56,7 @@ Výstupní tabulka Excel by měl a obsahovat sloupce
 - funkce
 - popis_téma např.
 
-```csv
-datum	čas	pořad	moderátor	příjmení	jméno	strana	popis_funkce	funkce	popis_téma
-2/1/2023		20 m RŽ	Kroc, Vladimír	Berg	Michal	Ostatní	spolupředseda Strany zelených	senátor	kauza Bečva
-```
+Podívej se na [template](data/template.xlsx)
 
 ## Použití
 
