@@ -43,7 +43,7 @@ Výsledkem práce programu  by měla být tabulka obsahující informacemi o epi
 - [ ] Ukládej (cashuj) již jednou stažené/zpracované pořady.
 - [ ] Rozhodni jak a jestli lze automatizovaně zpracovat speciály.
 
-Výstupní tabulka Excel by měl a obsahovat sloupce 
+Výstupní tabulka Excel by měl a obsahovat sloupce
 
 - datum
 - čas
@@ -71,7 +71,6 @@ Program pracuje následujícím způsobem:
    b. očekávaný počet respondentů (1 až 3)  
 4. Stáhni z webu pro Hlavní zprávy - rozhovory a komentáře pomocí <https://github.com/czech-radio/rozhovory.scraper> a získaná data přidej do výsledné tabulky.
 
-
 ## Instalace
 
 - Vytvoř virtuální prostředí.
@@ -94,12 +93,11 @@ Program pracuje následujícím způsobem:
 
 Pro potřeby prototypování a ukázek používáme nástroj [Jupyter](https://jupyter.org/). Notebooky je možné prohlížet v prostředí GitHub a upravovat přímo v editoru Visual Studio Code.
 
-
 ## Chyby
 
 Chyby, které mohou nastat:
 
-- Chybí autor viz konec seznamu: https://radiozurnal.rozhlas.cz/poledni-publicistika-koalicni-uspory-vinari-proti-spotrebni-dani-soudni-verdikt-8989443
+- Chybí autor viz konec seznamu: <https://radiozurnal.rozhlas.cz/poledni-publicistika-koalicni-uspory-vinari-proti-spotrebni-dani-soudni-verdikt-8989443>
 
 ### Odkazy
 
