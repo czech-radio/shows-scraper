@@ -34,25 +34,21 @@ func main() {
 		os.Exit(0)
 	}
 
-	articles := make([]Article, 0)
-
 	for i := 0; i < *numPages; i++ {
 		logger.Println("Page: ", fmt.Sprintf("%d/%d", i+1, *numPages))
 		logger.Println("----------")
 
 		episodes := GetRozhovoryEpisodes(i)
-		articles = append(articles, episodes...)
-
 		sortArticlesByDate(episodes)
 
 		for _, episode := range episodes {
 			logger.Println(episode.Date)
 			logger.Println("----------")
-			result, err := json.Marshal(articles)
+			episodeJSON, err := json.Marshal(episode)
 			if err != nil {
 				log.Fatal(err)
 			}
-			fmt.Println(string(result))
+			fmt.Println(string(episodeJSON))
 		}
 	}
 }
