@@ -94,6 +94,13 @@ Program pracuje následujícím způsobem:
 
 Pro potřeby prototypování a ukázek používáme nástroj [Jupyter](https://jupyter.org/). Notebooky je možné prohlížet v prostředí GitHub a upravovat přímo v editoru Visual Studio Code.
 
+
+## Chyby
+
+Chyby, které mohou nastat:
+
+- Chybí autor viz konec seznamu: https://radiozurnal.rozhlas.cz/poledni-publicistika-koalicni-uspory-vinari-proti-spotrebni-dani-soudni-verdikt-8989443
+
 ### Odkazy
 
 - <https://rapidoc.croapp.cz/>

@@ -20,9 +20,9 @@ var (
 	versionGitTag   string
 )
 
-func main() {
+var logger = log.New(os.Stderr, "", 0)
 
-	logger := log.New(os.Stderr, "", 0)
+func main() {
 
 	numPages := flag.Int("p", 1, "Number of pages to download.")
 	flag.BoolVar(&versionFlag, "v", false, "Print application version and exit.")
@@ -247,6 +247,7 @@ func GetRozhovoryEpisodes(pageNumber int) []Article {
 
 	//## Episode guests (+ moderator backup strategy when node-block--athors is missing)
 	c.OnHTML(".factbox", func(e *colly.HTMLElement) {
+
 		//### Scrape moderator
 		// Use this strategy only when `moderator` is missing.
 		// See https://radiozurnal.rozhlas.cz/poledni-publicistika-piratsky-sjezd-pavel-v-dnipru-knizni-festival-v-lipsku-8982816
@@ -269,7 +270,7 @@ func GetRozhovoryEpisodes(pageNumber int) []Article {
 			}
 		}
 		if strings.TrimSpace(strings.Join(guestsTexts, "")) == "" {
-			log.Println("Empty guests", episode)
+			logger.Println("Empty guests", episode)
 		}
 
 		replacer := strings.NewReplacer(".", " ", ";", " ")
@@ -279,8 +280,10 @@ func GetRozhovoryEpisodes(pageNumber int) []Article {
 		}
 
 		for _, g := range guestsTexts {
-			fields := strings.Fields(g)
-			guests = append(guests, Guest{Person: Person{FirstName: fields[0], LastName: strings.ReplaceAll(fields[1], ",", "")}, Function: strings.Join(fields[2:], " ")})
+			if len(g) > 0 { // May be empty <li>!
+				fields := strings.Fields(g)
+				guests = append(guests, Guest{Person: Person{FirstName: fields[0], LastName: strings.ReplaceAll(fields[1], ",", "")}, Function: strings.Join(fields[2:], " ")})
+			}
 		}
 	})
 
