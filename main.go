@@ -22,6 +22,8 @@ var (
 
 func main() {
 
+	logger := log.New(os.Stderr, "", 0)
+
 	numPages := flag.Int("p", 1, "Number of pages to download.")
 	flag.BoolVar(&versionFlag, "v", false, "Print application version and exit.")
 	flag.Parse()
@@ -35,19 +37,24 @@ func main() {
 	articles := make([]Article, 0)
 
 	for i := 0; i < *numPages; i++ {
-		articles = append(articles, GetRozhovoryEpisodes(i)...)
+		logger.Println("Page: ", fmt.Sprintf("%d/%d", i+1, *numPages))
+		logger.Println("----------")
+
+		episodes := GetRozhovoryEpisodes(i)
+		articles = append(articles, episodes...)
+
+		sortArticlesByDate(episodes)
+
+		for _, episode := range episodes {
+			logger.Println(episode.Date)
+			logger.Println("----------")
+			result, err := json.Marshal(articles)
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Println(string(result))
+		}
 	}
-
-	sortArticlesByDate(articles)
-
-	// JSON array result.
-	result, err := json.Marshal(articles)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println(string(result))
 }
 
 type Person struct {
