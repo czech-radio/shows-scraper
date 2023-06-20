@@ -303,3 +303,10 @@ func GetRozhovoryEpisodes(pageNumber int) []Article {
 
 	return articles
 }
+
+func GetInterviewPlusEpisodes(pageNumber int) []Article {
+
+	articles := make([]Article, 10)
+
+	return articles
+}
