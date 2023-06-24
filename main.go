@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
@@ -38,21 +37,36 @@ func main() {
 		logger.Println("Page: ", fmt.Sprintf("%d/%d", i+1, *numPages))
 		logger.Println("----------")
 
-		episodes := GetRozhovoryEpisodes(i)
-		sortArticlesByDate(episodes)
+		// 1. SHOW
+		// episodes := GetRozhovoryEpisodes(i)
+		// sortArticlesByDate(episodes)
 
-		for _, episode := range episodes {
-			logger.Println(episode.Date)
-			logger.Println("----------")
-			episodeJSON, err := json.Marshal(episode)
-			if err != nil {
-				log.Fatal(err)
-			}
-			fmt.Println(string(episodeJSON))
+		// for _, episode := range episodes {
+		// 	logger.Println(episode.Date)
+		// 	logger.Println("----------")
+		// 	episodeJSON, err := json.Marshal(episode)
+		// 	if err != nil {
+		// 		log.Fatal(err)
+		// 	}
+		// 	fmt.Println(string(episodeJSON))
+		// }
+
+		// 2. SHOW
+		for _, episode := range GetInterviewPlusEpisodes(i) {
+			logger.Println(episode)
+		}
+		// 3. SHOW
+		for _, episode := range GetProAProtiEpisodes(i) {
+			logger.Println(episode)
+		}
+		// 4. SHOW
+		for _, episode := range GetDvacetMinutEpisodes(i) {
+			logger.Println(episode)
 		}
 	}
 }
 
+// Person such as moderator or guest.
 type Person struct {
 	FirstName string `json:"firstName"`
 	LastName  string `json:"lastName"`
@@ -136,8 +150,9 @@ func convertDate(input string) string {
 	return fmt.Sprintf("%s-%s-%02d", year, mo, day)
 }
 
-// normalizeNames converts given personal name to normalized form.
+// normalizeNames converts personal name to normalized form.
 // We use hard coded moderator lookup names table e.g `Tomáše Pancíře` -> `Tomáš Pancíř`.
+// This is mainly intendet for Rozhovory a  *Hlavní zprávy - rozhovory, komentáře* .
 func normalizeNames(name string) string {
 
 	name = strings.TrimSpace(name)
@@ -304,9 +319,240 @@ func GetRozhovoryEpisodes(pageNumber int) []Article {
 	return articles
 }
 
+// GetInterviewPlusEpisodes scrapes *Interview Plus* episodes data from
+// https://plus.rozhlas.cz/interview-plus-6504167.
 func GetInterviewPlusEpisodes(pageNumber int) []Article {
 
-	articles := make([]Article, 10)
+	show := "Interview Plus"
+	var teaser, episode, date, time string
+	var moderator Person
+	var guests []Guest
+	var topicsCount int
+
+	articles := make([]Article, 0)
+	links := make([]string, 0)
+
+	c := colly.NewCollector()
+
+	c.OnHTML(".b-022__block--description", func(e *colly.HTMLElement) {
+		link := fmt.Sprintf("https://plus.rozhlas.cz%s", e.ChildAttr("h3 a", "href"))
+		links = append(links, link)
+	})
+
+	c.Visit(fmt.Sprintf("https://plus.rozhlas.cz/interview-plus-6504167?page=%d", pageNumber))
+
+	//# Visit index pages and collect article links.
+	c = colly.NewCollector()
+
+	//## Episode teaser
+	c.OnHTML(".field-perex", func(e *colly.HTMLElement) {
+		teaser = e.ChildText("p")
+		if teaser == "" {
+			teaser = e.ChildText("div")
+		}
+		if teaser == "" {
+			log.Println("Empty teaser", episode)
+		}
+	})
+
+	//## Episode title
+	c.OnHTML(".content", func(e *colly.HTMLElement) {
+		episode = e.ChildText("h1")
+		time = "11:34;"
+		date = convertDate(e.ChildText(".node-block__block--date"))
+		topicsCount = countTopics(episode)
+	})
+
+	//## Episode moderator
+	c.OnHTML(".node-block--authors", func(e *colly.HTMLElement) {
+
+		replacer := strings.NewReplacer("autor: ", "", "autoři:", "")
+
+		moderatorText := strings.Split(e.Text, ",")[0]
+		moderatorText = strings.TrimSpace(replacer.Replace(moderatorText))
+
+		splitedModeratorText := strings.Split(moderatorText, " ")
+
+		modedaratorFistName, moderatorLastName := splitedModeratorText[0], splitedModeratorText[1]
+
+		moderator = Person{
+			FirstName: modedaratorFistName,
+			LastName:  moderatorLastName,
+		}
+	})
+
+	//## Episode guests
+	c.OnHTML(".mrp-holder__header", func(e *colly.HTMLElement) {
+		//### Scrape guests
+		guests = make([]Guest, 0)
+		teaser = strings.Join(e.ChildTexts("p"), " ")
+	})
+
+	//## Get all episodes
+	for _, link := range links {
+		c.Visit(link)
+		article := NewArticle(show, episode, date, time, link, teaser, moderator, guests, topicsCount)
+		articles = append(articles, article)
+	}
 
 	return articles
 }
+
+// GetProAProtiEpisodes scrapes *Interview Plus* episodes data from
+// https://plus.rozhlas.cz/interview-plus-6504167.
+func GetProAProtiEpisodes(pageNumber int) []Article {
+
+	show := "Pro a proti"
+	var teaser, episode, date, time string
+	var moderator Person
+	var guests []Guest
+	var topicsCount int
+
+	articles := make([]Article, 0)
+	links := make([]string, 0)
+
+	c := colly.NewCollector()
+
+	c.OnHTML(".b-022__block--description", func(e *colly.HTMLElement) {
+		link := fmt.Sprintf("https://plus.rozhlas.cz%s", e.ChildAttr("h3 a", "href"))
+		links = append(links, link)
+	})
+
+	c.Visit(fmt.Sprintf("https://plus.rozhlas.cz/pro-a-proti-6482952?page=%d", pageNumber))
+
+	//# Visit index pages and collect article links.
+	c = colly.NewCollector()
+
+	//## Episode teaser
+	c.OnHTML(".field-perex", func(e *colly.HTMLElement) {
+		teaser = e.ChildText("p")
+		if teaser == "" {
+			teaser = e.ChildText("div")
+		}
+		if teaser == "" {
+			log.Println("Empty teaser", episode)
+		}
+	})
+
+	//## Episode title
+	c.OnHTML(".content", func(e *colly.HTMLElement) {
+		episode = e.ChildText("h1")
+		time = "11:34;"
+		date = convertDate(e.ChildText(".node-block__block--date"))
+		topicsCount = countTopics(episode)
+	})
+
+	//## Episode moderator
+	c.OnHTML(".node-block--authors", func(e *colly.HTMLElement) {
+
+		replacer := strings.NewReplacer("autor: ", "", "autoři:", "")
+
+		moderatorText := strings.Split(e.Text, ",")[0]
+		moderatorText = strings.TrimSpace(replacer.Replace(moderatorText))
+
+		splitedModeratorText := strings.Split(moderatorText, " ")
+
+		modedaratorFistName, moderatorLastName := splitedModeratorText[0], splitedModeratorText[1]
+
+		moderator = Person{
+			FirstName: modedaratorFistName,
+			LastName:  moderatorLastName,
+		}
+	})
+
+	//## Episode guests
+	c.OnHTML(".mrp-holder__header", func(e *colly.HTMLElement) {
+		//### Scrape guests
+		guests = make([]Guest, 0)
+		teaser = strings.Join(e.ChildTexts("p"), " ")
+	})
+
+	//## Get all episodes
+	for _, link := range links {
+		c.Visit(link)
+		article := NewArticle(show, episode, date, time, link, teaser, moderator, guests, topicsCount)
+		articles = append(articles, article)
+	}
+
+	return articles
+}
+
+func GetDvacetMinutEpisodes(pageNumber int) []Article {
+
+	show := "Dvacet minut Radiožurnálu"
+	var teaser, episode, date, time string
+	var moderator Person
+	var guests []Guest
+	var topicsCount int
+
+	articles := make([]Article, 0)
+	links := make([]string, 0)
+
+	c := colly.NewCollector()
+
+	c.OnHTML(".b-022__block--description", func(e *colly.HTMLElement) {
+		link := fmt.Sprintf("https://radiozurnal.rozhlas.cz/%s", e.ChildAttr("h3 a", "href"))
+		links = append(links, link)
+		// log.Println(link)
+	})
+
+	c.Visit(fmt.Sprintf("https://radiozurnal.rozhlas.cz/dvacet-minut-radiozurnalu-5997743?page=%d", pageNumber))
+
+	//# Visit index pages and collect article links.
+	c = colly.NewCollector()
+
+	//## Episode teaser
+	c.OnHTML(".field-perex", func(e *colly.HTMLElement) {
+		teaser = e.ChildText("p")
+		if teaser == "" {
+			teaser = e.ChildText("div")
+		}
+		if teaser == "" {
+			log.Println("Empty teaser", episode)
+		}
+	})
+
+	//## Episode title
+	c.OnHTML(".content", func(e *colly.HTMLElement) {
+		episode = e.ChildText("h1")
+		time = "11:34;"
+		date = convertDate(e.ChildText(".node-block__block--date"))
+		topicsCount = countTopics(episode)
+	})
+
+	//## Episode moderator
+	c.OnHTML(".node-block--authors", func(e *colly.HTMLElement) {
+
+		replacer := strings.NewReplacer("autor: ", "", "autoři:", "")
+
+		moderatorText := strings.Split(e.Text, ",")[0]
+		moderatorText = strings.TrimSpace(replacer.Replace(moderatorText))
+
+		splitedModeratorText := strings.Split(moderatorText, " ")
+
+		modedaratorFistName, moderatorLastName := splitedModeratorText[0], splitedModeratorText[1]
+
+		moderator = Person{
+			FirstName: modedaratorFistName,
+			LastName:  moderatorLastName,
+		}
+	})
+
+	//## Episode guests
+	c.OnHTML(".mrp-holder__header", func(e *colly.HTMLElement) {
+		//### Scrape guests
+		guests = make([]Guest, 0)
+		teaser = strings.Join(e.ChildTexts("p"), " ")
+	})
+
+	//## Get all episodes
+	for _, link := range links {
+		c.Visit(link)
+		article := NewArticle(show, episode, date, time, link, teaser, moderator, guests, topicsCount)
+		articles = append(articles, article)
+	}
+
+	return articles
+}
+
+// Speciál

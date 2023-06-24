@@ -1,4 +1,4 @@
-module rozhovory-scraper
+module shows-scraper
 
 go 1.19
 
