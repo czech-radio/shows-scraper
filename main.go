@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
@@ -38,30 +39,55 @@ func main() {
 		logger.Println("----------")
 
 		// 1. SHOW
-		// episodes := GetRozhovoryEpisodes(i)
-		// sortArticlesByDate(episodes)
-
-		// for _, episode := range episodes {
-		// 	logger.Println(episode.Date)
-		// 	logger.Println("----------")
-		// 	episodeJSON, err := json.Marshal(episode)
-		// 	if err != nil {
-		// 		log.Fatal(err)
-		// 	}
-		// 	fmt.Println(string(episodeJSON))
-		// }
+		log.Println("Rozhovory a komentáře")
+		log.Println("===============")
+		episodes := GetRozhovoryEpisodes(i)
+		sortArticlesByDate(episodes)
+		for _, episode := range episodes {
+			logger.Println(episode.Date)
+			logger.Println("----------")
+			episodeJSON, err := json.Marshal(episode)
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Println(string(episodeJSON))
+		}
 
 		// 2. SHOW
+		log.Println("Interview Plus")
+		log.Println("===============")
 		for _, episode := range GetInterviewPlusEpisodes(i) {
-			logger.Println(episode)
+			logger.Println(episode.Date)
+			logger.Println("----------")
+			episodeJSON, err := json.Marshal(episode)
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Println(string(episodeJSON))
 		}
 		// 3. SHOW
+		log.Println("Pro a proti")
+		log.Println("===============")
 		for _, episode := range GetProAProtiEpisodes(i) {
-			logger.Println(episode)
+			logger.Println(episode.Date)
+			logger.Println("----------")
+			episodeJSON, err := json.Marshal(episode)
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Println(string(episodeJSON))
 		}
 		// 4. SHOW
+		log.Println("Dvacet minut Radiožurnálu")
+		log.Println("===============")
 		for _, episode := range GetDvacetMinutEpisodes(i) {
-			logger.Println(episode)
+			logger.Println(episode.Date)
+			logger.Println("----------")
+			episodeJSON, err := json.Marshal(episode)
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Println(string(episodeJSON))
 		}
 	}
 }
@@ -324,10 +350,13 @@ func GetRozhovoryEpisodes(pageNumber int) []Article {
 func GetInterviewPlusEpisodes(pageNumber int) []Article {
 
 	show := "Interview Plus"
-	var teaser, episode, date, time string
+
+	var teaser, episode, date string
 	var moderator Person
 	var guests []Guest
-	var topicsCount int
+
+	time := "11:34"
+	topicsCount := 1
 
 	articles := make([]Article, 0)
 	links := make([]string, 0)
@@ -358,9 +387,7 @@ func GetInterviewPlusEpisodes(pageNumber int) []Article {
 	//## Episode title
 	c.OnHTML(".content", func(e *colly.HTMLElement) {
 		episode = e.ChildText("h1")
-		time = "11:34;"
 		date = convertDate(e.ChildText(".node-block__block--date"))
-		topicsCount = countTopics(episode)
 	})
 
 	//## Episode moderator
@@ -381,11 +408,68 @@ func GetInterviewPlusEpisodes(pageNumber int) []Article {
 		}
 	})
 
-	//## Episode guests
-	c.OnHTML(".mrp-holder__header", func(e *colly.HTMLElement) {
-		//### Scrape guests
+	//## Episode guest(s)
+	c.OnHTML(".mujRozhlasPlayer", func(e *colly.HTMLElement) {
 		guests = make([]Guest, 0)
-		teaser = strings.Join(e.ChildTexts("p"), " ")
+
+		s := e.Attr("data-player")
+
+		var player map[string]interface{}
+
+		if err := json.Unmarshal([]byte(s), &player); err != nil {
+			log.Fatal(err, s)
+		}
+
+		data, ok := player["data"].(map[string]interface{})
+		if !ok {
+			log.Fatal("data not ok")
+		}
+
+		playlist, ok := data["playlist"].([]interface{})
+		if !ok {
+			log.Fatal("playlist not ok")
+		}
+
+		rapiEpisode, ok := playlist[0].(map[string]interface{})["rapiEpisode"].(map[string]interface{})
+		if !ok {
+			log.Fatal("rapiEpisode not ok")
+		}
+
+		attributes, ok := rapiEpisode["attributes"].(map[string]interface{})
+		if !ok {
+			log.Fatal("ga not ok")
+		}
+
+		shortTitle := attributes["shortTitle"].(string)
+
+		// Now you can try to parse quest ;)
+		textWithGuest := strings.Split(shortTitle, "Hostem je")
+
+		result := strings.TrimSpace(textWithGuest[len(textWithGuest)-1])
+		splitted := strings.Split(result, ",")
+
+		desc := "UNKNOWN"
+		var ln, fn string
+		if len(splitted) > 1 {
+			name := splitted[0]
+			desc = splitted[len(splitted)-1]
+			ln = strings.Split(name, " ")[0]
+			fn = strings.Split(name, " ")[1]
+		} else {
+			name := splitted[0]
+			ln = name
+			fn = "UNKNOWN"
+		}
+
+		guest := Guest{
+			Person: Person{
+				FirstName: fn,
+				LastName:  ln,
+			},
+			Function: desc,
+		}
+
+		guests = append(guests, guest)
 	})
 
 	//## Get all episodes
@@ -461,10 +545,68 @@ func GetProAProtiEpisodes(pageNumber int) []Article {
 	})
 
 	//## Episode guests
-	c.OnHTML(".mrp-holder__header", func(e *colly.HTMLElement) {
-		//### Scrape guests
+	c.OnHTML(".mujRozhlasPlayer", func(e *colly.HTMLElement) {
 		guests = make([]Guest, 0)
-		teaser = strings.Join(e.ChildTexts("p"), " ")
+
+		s := e.Attr("data-player")
+
+		var player map[string]interface{}
+
+		if err := json.Unmarshal([]byte(s), &player); err != nil {
+			// log.Fatal(err, s)
+
+		} else {
+
+			data, ok := player["data"].(map[string]interface{})
+			if !ok {
+				log.Fatal("data not ok")
+			}
+
+			playlist, ok := data["playlist"].([]interface{})
+			if !ok {
+				log.Fatal("playlist not ok", data)
+			}
+
+			rapiEpisode, ok := playlist[0].(map[string]interface{})["rapiEpisode"].(map[string]interface{})
+			if !ok {
+				log.Fatal("rapiEpisode not ok")
+			}
+
+			attributes, ok := rapiEpisode["attributes"].(map[string]interface{})
+			if !ok {
+				log.Fatal("ga not ok")
+			}
+
+			shortTitle := attributes["shortTitle"].(string)
+
+			// Now you can try to parse quest ;)
+			textWithGuest := strings.Split(shortTitle, "Hostem je")
+
+			result := strings.TrimSpace(textWithGuest[len(textWithGuest)-1])
+			splitted := strings.Split(result, ",")
+
+			desc := "UNKNOWN"
+			var ln, fn string
+			if len(splitted) > 1 {
+				name := splitted[0]
+				desc = splitted[len(splitted)-1]
+				ln = strings.Split(name, " ")[0]
+				fn = strings.Split(name, " ")[1]
+			} else {
+				name := splitted[0]
+				ln = name
+				fn = "UNKNOWN"
+			}
+
+			guest := Guest{
+				Person: Person{
+					FirstName: fn,
+					LastName:  ln,
+				},
+				Function: desc,
+			}
+			guests = append(guests, guest)
+		}
 	})
 
 	//## Get all episodes
@@ -539,10 +681,67 @@ func GetDvacetMinutEpisodes(pageNumber int) []Article {
 	})
 
 	//## Episode guests
-	c.OnHTML(".mrp-holder__header", func(e *colly.HTMLElement) {
-		//### Scrape guests
+	c.OnHTML(".mujRozhlasPlayer", func(e *colly.HTMLElement) {
 		guests = make([]Guest, 0)
-		teaser = strings.Join(e.ChildTexts("p"), " ")
+
+		s := e.Attr("data-player")
+
+		var player map[string]interface{}
+
+		if err := json.Unmarshal([]byte(s), &player); err != nil {
+			log.Println(err)
+		}
+
+		data, ok := player["data"].(map[string]interface{})
+		if !ok {
+			log.Fatal("data not ok")
+		}
+
+		playlist, ok := data["playlist"].([]interface{})
+		if !ok {
+			log.Fatal("playlist not ok")
+		}
+
+		rapiEpisode, ok := playlist[0].(map[string]interface{})["rapiEpisode"].(map[string]interface{})
+		if !ok {
+			log.Fatal("rapiEpisode not ok")
+		}
+
+		attributes, ok := rapiEpisode["attributes"].(map[string]interface{})
+		if !ok {
+			log.Fatal("ga not ok")
+		}
+
+		shortTitle := attributes["shortTitle"].(string)
+
+		// Now you can try to parse quest ;)
+		textWithGuest := strings.Split(shortTitle, "Hostem je")
+
+		result := strings.TrimSpace(textWithGuest[len(textWithGuest)-1])
+		splitted := strings.Split(result, ",")
+
+		desc := "UNKNOWN"
+		var ln, fn string
+		if len(splitted) > 1 {
+			name := splitted[0]
+			desc = splitted[len(splitted)-1]
+			ln = strings.Split(name, " ")[0]
+			fn = strings.Split(name, " ")[1]
+		} else {
+			name := splitted[0]
+			ln = name
+			fn = "UNKNOWN"
+		}
+
+		guest := Guest{
+			Person: Person{
+				FirstName: fn,
+				LastName:  ln,
+			},
+			Function: desc,
+		}
+
+		guests = append(guests, guest)
 	})
 
 	//## Get all episodes
